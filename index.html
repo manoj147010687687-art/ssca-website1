@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Shreesyam Cricket Academy | Ranchi's Premier Cricket Academy</title>
+<meta name="description" content="Shreesyam Cricket Academy - Professional cricket coaching in Ranchi. Admissions open, batting/bowling/fielding training, live match scores, tournaments and more.">
+<meta name="keywords" content="cricket academy, cricket coaching Bahadurgarh (HR), cricket admission, Shreesyam cricket academy, cricket training near me">
+<meta property="og:title" content="Shreesyam Cricket Academy">
+<meta property="og:description" content="Where champions are made. Batting, Bowling, Fielding coaching for all age groups.">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B3D2E">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;600;700&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- FIREBASE (real database + admin login + live sync across all visitors) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --pitch:#0B3D2E;
+  --pitch-2:#0f5240;
+  --ball:#C0392B;
+  --ball-2:#e0533f;
+  --cream:#F6F1E4;
+  --cream-2:#EDE4CE;
+  --tan:#C9A66B;
+  --ink:#0A1420;
+  --ink-2:#0F1E2E;
+  --gold:#D4A62A;
+  --text-dark:#12201A;
+  --text-light:#F6F1E4;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Work Sans',sans-serif;
+  background:var(--cream);
+  color:var(--text-dark);
+  transition:background .4s ease,color .4s ease;
+  overflow-x:hidden;
+}
+body.dark{
+  background:var(--ink);
+  color:var(--text-light);
+}
+h1,h2,h3,.display{
+  font-family:'Anton',sans-serif;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  line-height:1.05;
+}
+.mono{font-family:'JetBrains Mono',monospace;}
+a{text-decoration:none;color:inherit;}
+img{max-width:100%;display:block;}
+.container{max-width:1180px;margin:0 auto;padding:0 24px;}
+section{padding:90px 0;position:relative;}
+@media(max-width:700px){section{padding:56px 0;}}
+
+/* seam divider - signature element */
+.seam{
+  height:34px;width:100%;
+  background:repeating-linear-gradient(90deg, transparent 0 18px, var(--ball) 18px 20px, transparent 20px 38px);
+  position:relative;opacity:.85;
+}
+.seam::before,.seam::after{
+  content:"";position:absolute;left:0;right:0;height:2px;background:var(--tan);
+}
+.seam::before{top:6px;}
+.seam::after{bottom:6px;}
+
+/* NAV */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  background:rgba(11,61,46,.94);
+  backdrop-filter:blur(8px);
+  border-bottom:2px solid var(--gold);
+}
+body.dark header{background:rgba(10,20,32,.94);}
+nav{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;max-width:1180px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font-family:'Anton',sans-serif;font-size:18px;letter-spacing:.5px;}
+.logo img{width:42px;height:42px;border-radius:8px;object-fit:cover;box-shadow:0 0 0 2px var(--gold);}
+.logo span{color:var(--gold);}
+.navlinks{display:flex;gap:20px;align-items:center;}
+.navlinks a{color:#eee;font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.4px;transition:color .2s;display:flex;align-items:center;gap:5px;}
+.navlinks a:hover{color:var(--gold);}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#ff4d4d;animation:pulse 1.4s infinite;}
+.iconbtn{background:none;border:1.5px solid rgba(255,255,255,.4);color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 26px;border-radius:4px;font-weight:700;font-size:14px;
+  text-transform:uppercase;letter-spacing:.5px;cursor:pointer;border:none;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn-primary{background:var(--ball);color:#fff;box-shadow:0 6px 18px rgba(192,57,43,.35);}
+.btn-gold{background:var(--gold);color:#12200f;}
+.btn-outline{background:transparent;border:2px solid var(--cream);color:var(--cream);}
+.hamburger{display:none;background:none;border:none;color:#fff;font-size:26px;cursor:pointer;}
+@media(max-width:960px){
+  .navlinks{position:fixed;top:62px;left:0;right:0;background:var(--pitch);flex-direction:column;padding:20px;gap:16px;transform:translateY(-150%);transition:transform .3s;border-bottom:2px solid var(--gold);align-items:flex-start;}
+  .navlinks.open{transform:translateY(0);}
+  .hamburger{display:block;}
+}
+
+/* HERO */
+.hero{
+  min-height:100vh;position:relative;display:flex;align-items:center;
+  background:linear-gradient(180deg, rgba(6,30,22,.55), rgba(6,20,15,.85)), url('https://images.unsplash.com/photo-1607734834519-d8576ae60ea6?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat fixed;
+  color:#fff;padding-top:80px;
+}
+.hero-inner{max-width:1180px;margin:0 auto;padding:0 24px;width:100%;}
+.eyebrow{display:inline-block;background:rgba(212,166,42,.15);border:1px solid var(--gold);color:var(--gold);padding:6px 14px;border-radius:30px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:20px;}
+.hero h1{font-size:clamp(38px,7vw,84px);color:#fff;}
+.hero h1 .accent{color:var(--ball-2);}
+.hero p{font-size:18px;max-width:560px;margin:20px 0 30px;color:#e8e3d4;}
+.hero-cta{display:flex;gap:16px;flex-wrap:wrap;}
+.scoreboard{
+  margin-top:56px;display:flex;gap:0;flex-wrap:wrap;border:2px solid var(--gold);border-radius:8px;overflow:hidden;
+  background:rgba(0,0,0,.35);backdrop-filter:blur(4px);
+}
+.score-cell{flex:1;min-width:130px;padding:18px 14px;text-align:center;border-right:1px solid rgba(212,166,42,.4);}
+.score-cell:last-child{border-right:none;}
+.score-cell .num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--gold);}
+.score-cell .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#ddd;margin-top:4px;}
+
+/* SECTION HEAD */
+.sec-head{text-align:center;max-width:640px;margin:0 auto 50px;}
+.sec-head .eyebrow{background:rgba(192,57,43,.12);border-color:var(--ball);color:var(--ball);}
+body.dark .sec-head .eyebrow{background:rgba(212,166,42,.12);border-color:var(--gold);color:var(--gold);}
+.sec-head h2{font-size:clamp(28px,4.5vw,46px);}
+.sec-head p{margin-top:14px;color:#5a6b62;font-size:16px;}
+body.dark .sec-head p{color:#9fb3ab;}
+
+/* LIVE MATCH */
+#live{background:linear-gradient(180deg, var(--pitch), var(--pitch-2));color:#fff;}
+body.dark #live{background:linear-gradient(180deg,#081a13,#0d2a1f);}
+#live .sec-head p{color:#cfe0d6;}
+.live-card{background:rgba(0,0,0,.28);border:2px solid var(--gold);border-radius:16px;padding:30px;max-width:900px;margin:0 auto;backdrop-filter:blur(6px);}
+.live-badge{display:inline-flex;align-items:center;gap:8px;background:#ff4d4d;color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+@keyframes pulse{0%{opacity:1;}50%{opacity:.3;}100%{opacity:1;}}
+.live-badge .dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite;}
+.live-teams{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.live-team{text-align:center;flex:1;min-width:140px;}
+.live-team .tname{font-family:'Anton';font-size:20px;letter-spacing:.5px;}
+.live-team .tscore{font-family:'JetBrains Mono';font-size:34px;color:var(--gold);font-weight:700;margin-top:6px;}
+.live-team .tovers{font-size:12px;color:#cfe0d6;margin-top:4px;}
+.live-vs{font-family:'Anton';font-size:16px;color:var(--gold);opacity:.8;}
+.live-meta{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.15);font-size:13px;color:#dce8e0;}
+.live-meta strong{color:var(--gold);}
+.live-balls{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
+.ball-chip{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);}
+.ball-chip.four{background:#2e9e5b;}
+.ball-chip.six{background:var(--ball);}
+.ball-chip.wicket{background:#111;border-color:#ff4d4d;color:#ff4d4d;}
+.commentary{margin-top:20px;max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font-size:13px;padding-right:6px;}
+.commentary .c-item{background:rgba(255,255,255,.06);padding:8px 12px;border-radius:8px;border-left:3px solid var(--gold);}
+.commentary .c-item .c-over{color:var(--gold);font-family:'JetBrains Mono';font-weight:700;margin-right:8px;}
+
+/* COACHES */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+@media(max-width:900px){.grid-3{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.grid-3{grid-template-columns:1fr;}}
+.coach-card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 10px 30px rgba(11,61,46,.08);transition:transform .25s;border:1px solid #e9e2cd;}
+body.dark .coach-card{background:var(--ink-2);border-color:#1c2e40;}
+.coach-card:hover{transform:translateY(-8px);}
+.coach-img{height:230px;overflow:hidden;position:relative;}
+.coach-img img{width:100%;height:100%;object-fit:cover;}
+.coach-body{padding:18px 20px 22px;}
+.coach-body h3{font-family:'Work Sans';font-weight:800;font-size:18px;text-transform:none;}
+.coach-role{color:var(--ball);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.4px;margin:4px 0 10px;}
+.coach-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.tag{background:var(--cream-2);color:var(--pitch);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
+body.dark .tag{background:#16283a;color:var(--gold);}
+
+/* FORMS */
+.card-panel{background:#fff;border-radius:14px;padding:38px;box-shadow:0 14px 40px rgba(11,61,46,.1);border:1px solid #e9e2cd;}
+body.dark .card-panel{background:var(--ink-2);border-color:#1c2e40;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--pitch);}
+body.dark .field label{color:var(--gold);}
+.field input,.field select,.field textarea{
+  padding:12px 14px;border-radius:8px;border:1.5px solid #d9d0b6;background:var(--cream);color:var(--text-dark);font-family:'Work Sans';font-size:14px;
+}
+body.dark .field input,body.dark .field select,body.dark .field textarea{background:#0d1c2b;border-color:#233a4f;color:#eee;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:3px solid var(--gold);border-color:var(--gold);}
+.success-msg{display:none;background:#e4f5e9;border:1.5px solid #2e9e5b;color:#1f6b3e;padding:14px 18px;border-radius:8px;font-weight:600;margin-top:16px;}
+body.dark .success-msg{background:#0d2a19;color:#6fe0a0;}
+
+/* FEE PLANS */
+.grid-3-fee{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+@media(max-width:900px){.grid-3-fee{grid-template-columns:1fr;}}
+.plan-card{background:#fff;border-radius:14px;padding:32px 26px;text-align:center;border:2px solid #e9e2cd;position:relative;transition:transform .25s;}
+body.dark .plan-card{background:var(--ink-2);border-color:#1c2e40;}
+.plan-card:hover{transform:translateY(-6px);}
+.plan-card.popular{border-color:var(--gold);}
+.plan-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--gold);color:#12200f;font-size:11px;font-weight:800;padding:5px 14px;border-radius:20px;text-transform:uppercase;}
+.plan-price{font-family:'JetBrains Mono';font-size:40px;font-weight:700;color:var(--ball);margin:14px 0;}
+body.dark .plan-price{color:var(--gold);}
+.plan-price span{font-size:15px;color:#888;font-weight:400;}
+.plan-card ul{list-style:none;text-align:left;margin:20px 0;display:flex;flex-direction:column;gap:10px;}
+.plan-card ul li{font-size:14px;display:flex;gap:8px;align-items:flex-start;}
+.plan-card ul li::before{content:"✔";color:var(--pitch-2);font-weight:700;}
+body.dark .plan-card ul li::before{color:var(--gold);}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(6,15,11,.7);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:30px;max-width:420px;width:100%;position:relative;}
+body.dark .modal{background:var(--ink-2);color:#eee;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:inherit;}
+
+/* GALLERY */
+.gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:900px){.gallery-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.gallery-grid{grid-template-columns:repeat(2,1fr);}}
+.gallery-grid img{aspect-ratio:1/1;object-fit:cover;border-radius:10px;cursor:pointer;transition:transform .3s;}
+.gallery-grid img:hover{transform:scale(1.04);}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:3000;padding:20px;}
+.lightbox.show{display:flex;}
+.lightbox img{max-height:88vh;border-radius:8px;}
+.lightbox .lb-close{position:absolute;top:20px;right:26px;color:#fff;font-size:32px;cursor:pointer;background:none;border:none;}
+
+/* TABLE / RESULTS */
+.results-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(11,61,46,.08);}
+body.dark .results-table{background:var(--ink-2);}
+.results-table th{background:var(--pitch);color:#fff;padding:14px;text-align:left;font-size:13px;text-transform:uppercase;letter-spacing:.4px;}
+.results-table td{padding:14px;border-bottom:1px solid #eee2cb;font-size:14px;}
+body.dark .results-table td{border-color:#1c2e40;}
+.result-pill{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.win{background:#e3f6e9;color:#1f8f4d;}
+.loss{background:#fbe6e3;color:#c0392b;}
+body.dark .win{background:#0d2a19;color:#6fe0a0;}
+body.dark .loss{background:#2b1512;color:#ff9a8b;}
+
+/* NEWS */
+.news-item{display:flex;gap:18px;padding:20px 0;border-bottom:1px solid #e9e2cd;}
+body.dark .news-item{border-color:#1c2e40;}
+.news-date{font-family:'JetBrains Mono';background:var(--cream-2);color:var(--pitch);font-weight:700;padding:10px 14px;border-radius:8px;text-align:center;min-width:70px;height:fit-content;font-size:13px;}
+body.dark .news-date{background:#16283a;color:var(--gold);}
+
+/* TESTIMONIALS */
+.testi-track{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px;}
+.testi-card{flex:0 0 340px;scroll-snap-align:start;background:#fff;border-radius:14px;padding:26px;border:1px solid #e9e2cd;}
+body.dark .testi-card{background:var(--ink-2);border-color:#1c2e40;}
+.stars{color:var(--gold);letter-spacing:2px;margin-bottom:10px;}
+.testi-user{display:flex;align-items:center;gap:12px;margin-top:16px;}
+.testi-user img{width:44px;height:44px;border-radius:50%;object-fit:cover;}
+
+/* SCHEDULE */
+.sched-table{width:100%;border-collapse:collapse;}
+.sched-table th,.sched-table td{border:1px solid #e9e2cd;padding:12px;text-align:center;font-size:13px;}
+body.dark .sched-table th,body.dark .sched-table td{border-color:#1c2e40;}
+.sched-table th{background:var(--pitch);color:#fff;}
+.slot{background:var(--cream-2);border-radius:6px;padding:4px;font-size:12px;}
+body.dark .slot{background:#16283a;color:var(--gold);}
+
+/* ATTENDANCE */
+.att-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:8px;background:#fff;margin-bottom:10px;border:1px solid #e9e2cd;}
+body.dark .att-row{background:var(--ink-2);border-color:#1c2e40;}
+.att-btns button{border:none;padding:7px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;margin-left:6px;}
+.att-p{background:#e3f6e9;color:#1f8f4d;}
+.att-a{background:#fbe6e3;color:#c0392b;}
+.att-p.active,.att-a.active{outline:2px solid currentColor;}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+.stat-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.stat-box{background:var(--pitch);color:#fff;padding:16px;border-radius:10px;text-align:center;}
+.stat-box .n{font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--gold);}
+.stat-box .l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+
+/* QR & CERT */
+.tool-flex{display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start;}
+.tool-box{flex:1;min-width:280px;}
+#qrcanvas-wrap{background:#fff;padding:16px;border-radius:10px;display:inline-block;}
+.cert-preview{border:6px double var(--gold);background:linear-gradient(135deg,#fdfcf6,#f3ecd8);padding:30px;text-align:center;border-radius:6px;}
+body.dark .cert-preview{background:linear-gradient(135deg,#12222f,#0d1a26);}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;}
+@media(max-width:800px){.contact-grid{grid-template-columns:1fr;}}
+.contact-info-item{display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;}
+.contact-info-item .ico{background:var(--pitch);color:var(--gold);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* FOOTER */
+footer{background:var(--pitch);color:#e8e3d4;padding:56px 0 24px;}
+body.dark footer{background:#060f0b;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:30px;margin-bottom:36px;}
+@media(max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;}}
+.footer-grid h4{color:var(--gold);font-size:14px;text-transform:uppercase;margin-bottom:14px;letter-spacing:.5px;}
+.footer-grid a{display:block;color:#c9c2ac;font-size:14px;margin-bottom:8px;}
+.footer-bottom{text-align:center;border-top:1px solid rgba(255,255,255,.1);padding-top:20px;font-size:13px;color:#a19c86;}
+.footer-logo{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.footer-logo img{width:48px;height:48px;border-radius:8px;box-shadow:0 0 0 2px var(--gold);}
+
+/* FLOATING BUTTONS */
+.fab-stack{position:fixed;bottom:24px;right:20px;display:flex;flex-direction:column;gap:14px;z-index:2500;}
+.fab{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,.3);cursor:pointer;border:none;color:#fff;font-size:26px;}
+.fab-wa{background:#25D366;}
+.fab-chat{background:var(--ball);}
+
+/* CHATBOT */
+.chat-window{position:fixed;bottom:96px;right:20px;width:320px;max-width:88vw;height:420px;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.3);display:none;flex-direction:column;overflow:hidden;z-index:2600;border:2px solid var(--pitch);}
+.chat-window.show{display:flex;}
+body.dark .chat-window{background:var(--ink-2);}
+.chat-head{background:var(--pitch);color:#fff;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.chat-body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;font-size:13px;}
+.chat-msg{max-width:80%;padding:9px 12px;border-radius:12px;line-height:1.4;}
+.chat-bot{background:var(--cream-2);align-self:flex-start;border-bottom-left-radius:2px;}
+body.dark .chat-bot{background:#16283a;}
+.chat-user{background:var(--ball);color:#fff;align-self:flex-end;border-bottom-right-radius:2px;}
+.chat-quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;}
+.chat-quick button{background:var(--cream-2);border:none;padding:6px 10px;border-radius:14px;font-size:11px;cursor:pointer;}
+body.dark .chat-quick button{background:#16283a;color:#eee;}
+.chat-input{display:flex;border-top:1px solid #eee;}
+.chat-input input{flex:1;border:none;padding:12px;font-size:13px;background:transparent;color:inherit;}
+.chat-input button{background:var(--pitch);color:#fff;border:none;padding:0 18px;cursor:pointer;}
+
+/* ADMIN */
+.admin-toggle{position:fixed;bottom:24px;left:20px;z-index:2500;}
+.admin-panel{position:fixed;inset:0;background:rgba(6,15,11,.7);z-index:4000;display:none;align-items:center;justify-content:center;padding:20px;}
+.admin-panel.show{display:flex;}
+.admin-box{background:#fff;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;border-radius:14px;padding:30px;}
+body.dark .admin-box{background:var(--ink-2);color:#eee;}
+.admin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee;}
+body.dark .admin-row{border-color:#1c2e40;}
+.switch{position:relative;width:44px;height:24px;background:#ccc;border-radius:20px;cursor:pointer;}
+.switch.on{background:var(--pitch-2);}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s;}
+.switch.on::after{left:23px;}
+.admin-tab-btn{background:#f0ede2;border:1.5px solid #ddd5bd;color:#555;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.admin-tab-btn.active{background:var(--pitch);color:#fff;border-color:var(--pitch);}
+body.dark .admin-tab-btn{background:#132436;border-color:#1c2e40;color:#ccc;}
+body.dark .admin-tab-btn.active{background:var(--gold);color:#0A1420;border-color:var(--gold);}
+.data-row{border:1px solid #eee;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;}
+body.dark .data-row{border-color:#1c2e40;}
+.data-row .drow-top{display:flex;justify-content:space-between;font-weight:700;}
+.data-row .drow-meta{color:#888;font-size:12px;margin-top:2px;}
+.data-row button{background:none;border:none;color:var(--ball);cursor:pointer;font-size:12px;font-weight:700;margin-top:6px;}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+::selection{background:var(--gold);color:#12200f;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <nav>
+    <div class="logo"><img src="logo.png" alt="Shreesyam Cricket Academy Logo"> SHREESYAM <span>CA</span></div>
+    <div class="navlinks" id="navlinks">
+      <a href="#live"><span class="live-dot"></span> Live</a>
+      <a href="#coaches">Coaches</a>
+      <a href="#admission">Admission</a>
+      <a href="#fees">Fees</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#results">Results</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#contact">Contact</a>
+      <a href="#admission" class="btn btn-gold" style="padding:9px 18px;">Enroll Now</a>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="iconbtn" id="themeToggle" title="Dark/Light Mode">🌙</button>
+      <button class="hamburger" id="hamburger">☰</button>
+    </div>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <span class="eyebrow">🏆 Est. 2025 Bahadurgarh (HR)</span>
+    <h1>BUILD YOUR NEXT<br><span class="accent">CRICKET LEGACY</span></h1>
+    <p>Shreesyam Cricket Academy delivers professional coaching, match temperament and the field where dreams turn into runs. Batting, Bowling, Fielding — everything under one roof.</p>
+    <div class="hero-cta">
+      <a href="#admission" class="btn btn-primary">📅 Apply for Admission</a>
+      <a href="#coaches" class="btn btn-outline">👨‍🏫 Meet Our Coaches</a>
+    </div>
+    <div class="scoreboard">
+      <div class="score-cell"><div class="num mono">300+</div><div class="lbl">Students Trained</div></div>
+      <div class="score-cell"><div class="num mono">45</div><div class="lbl">Tournaments Won</div></div>
+      <div class="score-cell"><div class="num mono">12</div><div class="lbl">Expert Coaches</div></div>
+      <div class="score-cell"><div class="num mono">9 Yrs</div><div class="lbl">Experience</div></div>
+    </div>
+  </div>
+</section>
+<div class="seam"></div>
+
+<!-- LIVE MATCH -->
+<section id="live">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow" style="background:rgba(255,77,77,.15);border-color:#ff4d4d;color:#ff8a8a;">🔴 Live Match Center</span>
+      <h2>Live Score Updates</h2>
+      <p>Follow our academy team in real time — live scores, overs and ball-by-ball commentary. Controlled live by the academy admin.</p>
+    </div>
+
+    <div class="live-card reveal" id="noLiveCard" style="display:none;text-align:center;">
+      <div style="font-size:15px;color:var(--tan);font-weight:700;">📴 No live match right now</div>
+      <p style="margin-top:8px;font-size:14px;">Check back during our next match — scores will appear here automatically the moment our admin starts the live scoreboard.</p>
+    </div>
+
+    <div class="live-card reveal" id="liveCard" style="display:none;">
+      <div class="live-badge" id="liveBadgeText"><span class="dot"></span> LIVE — <span id="liveInningsLabel">1st Innings</span></div>
+      <div class="live-teams">
+        <div class="live-team">
+          <div class="tname" id="teamAName">Team A</div>
+          <div class="tscore mono" id="teamAScore">0/0</div>
+          <div class="tovers">Overs: <span id="teamAOvers">0.0</span></div>
+        </div>
+        <div class="live-vs">VS</div>
+        <div class="live-team">
+          <div class="tname" id="teamBName">Team B</div>
+          <div class="tscore mono" id="teamBScore">Yet to bat</div>
+          <div class="tovers" id="teamBStatus"></div>
+        </div>
+      </div>
+      <div class="live-meta">
+        <span id="targetRow" style="display:none;">Target: <strong id="targetVal">-</strong></span>
+        <span id="needRow" style="display:none;">Need: <strong id="needRuns">-</strong></span>
+        <span>CRR: <strong id="crrVal">0.00</strong></span>
+        <span>Venue: <strong id="venueVal">-</strong></span>
+      </div>
+      <div class="live-balls" id="liveBalls"></div>
+      <div class="commentary" id="commentaryFeed"></div>
+    </div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- COACHES -->
+<section id="coaches">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">👨‍🏫 Our Mentors</span>
+      <h2>Coaches Who Build Champions</h2>
+      <p>With Ranji and club-level experience, every coach is an expert in their specialization.</p>
+    </div>
+    <div class="grid-3" id="coachGrid"></div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- ADMISSION -->
+<section id="admission">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">📅 Admissions Open</span>
+      <h2>Online Admission Form</h2>
+      <p>Fill out the form and our team will call you within 24 hours.</p>
+    </div>
+    <div class="card-panel reveal" style="max-width:800px;margin:0 auto;">
+      <form id="admissionForm">
+        <div class="form-grid">
+          <div class="field"><label>Student Name</label><input id="admName" required type="text" placeholder="e.g. Rohit Kumar"></div>
+          <div class="field"><label>Age</label><input id="admAge" required type="number" min="5" max="25" placeholder="e.g. 14"></div>
+          <div class="field"><label>Parent Contact No.</label><input id="admPhone" required type="tel" pattern="[0-9]{10}" placeholder="10 digit mobile"></div>
+          <div class="field"><label>Email</label><input id="admEmail" required type="email" placeholder="you@example.com"></div>
+          <div class="field"><label>Preferred Batch</label>
+            <select id="admBatch" required>
+              <option value="">Select Batch</option>
+              <option>Morning (6 AM – 8 AM)</option>
+              <option>Evening (4 PM – 6 PM)</option>
+              <option>Weekend Batch</option>
+            </select>
+          </div>
+          <div class="field"><label>Skill Level</label>
+            <select id="admLevel" required>
+              <option value="">Select Level</option>
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced / District Level</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px;"><label>Message (optional)</label><textarea id="admMsg" rows="3" placeholder="Tell us anything we should know..."></textarea></div>
+        <button type="submit" class="btn btn-primary" style="margin-top:20px;width:100%;justify-content:center;" id="admSubmitBtn">Submit Admission Form</button>
+        <div class="success-msg" id="admSuccess">✅ Thank you! Your admission form has been submitted successfully. Our team will contact you shortly.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- FEES -->
+<section id="fees">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">💳 Online Fee Payment</span>
+      <h2>Simple &amp; Secure Plans</h2>
+      <p>Choose your plan and pay online in seconds.</p>
+    </div>
+    <div class="grid-3-fee reveal">
+      <div class="plan-card">
+        <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;">Monthly</h3>
+        <div class="plan-price">₹1,999<span>/mo</span></div>
+        <ul>
+          <li>12 Sessions / month</li>
+          <li>Basic Equipment Use</li>
+          <li>Fitness Tracking</li>
+        </ul>
+        <button class="btn btn-outline pay-btn" data-plan="Monthly" data-amt="2500" style="width:100%;justify-content:center;border-color:var(--pitch);color:var(--pitch);">Pay Now</button>
+      </div>
+      <div class="plan-card popular">
+        <div class="plan-badge">Most Popular</div>
+        <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;">Quarterly</h3>
+        <div class="plan-price">₹6500<span>/3mo</span></div>
+        <ul>
+          <li>Everything in Monthly</li>
+          <li>Free Kit Bag</li>
+          <li>Monthly Performance Report</li>
+        </ul>
+        <button class="btn btn-primary pay-btn" data-plan="Quarterly" data-amt="6500" style="width:100%;justify-content:center;">Pay Now</button>
+      </div>
+      <div class="plan-card">
+        <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;">Annual</h3>
+        <div class="plan-price">₹18,999<span>/yr</span></div>
+        <ul>
+          <li>Everything in Quarterly</li>
+          <li>Tournament Entry Included</li>
+          <li>1-on-1 Coaching Sessions</li>
+        </ul>
+        <button class="btn btn-outline pay-btn" data-plan="Annual" data-amt="18999" style="width:100%;justify-content:center;border-color:var(--pitch);color:var(--pitch);">Pay Now</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('payModal')">✕</button>
+    <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin-bottom:8px;">Complete Payment</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:16px;" id="payPlanText"></p>
+    <div class="field" style="margin-bottom:12px;"><label>Amount</label><input id="payAmt" type="text" readonly></div>
+    <div class="field" style="margin-bottom:12px;"><label>UPI ID / Card</label><input placeholder="example@upi"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="confirmPay()">🔒 Pay Securely</button>
+    <p style="font-size:11px;color:#999;margin-top:12px;">Demo gateway — a live site would integrate Razorpay/Stripe here.</p>
+  </div>
+</div>
+
+<div class="seam"></div>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">📸 Moments</span>
+      <h2>Photo &amp; Video Gallery</h2>
+      <p>From practice sessions to tournament wins — relive our champions' best moments.</p>
+    </div>
+    <div class="gallery-grid reveal" id="galleryGrid"></div>
+  </div>
+</section>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('show')">✕</button>
+  <img id="lightboxImg" src="">
+</div>
+
+<div class="seam"></div>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">🏆 Scoreboard</span>
+      <h2>Tournament &amp; Match Results</h2>
+    </div>
+    <div style="overflow-x:auto;" class="reveal">
+      <table class="results-table">
+        <thead><tr><th>Date</th><th>Match</th><th>Score</th><th>Result</th></tr></thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- NEWS -->
+<section id="news">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">📢 Notice Board</span>
+      <h2>Latest News &amp; Notices</h2>
+    </div>
+    <div class="reveal" id="newsList" style="max-width:760px;margin:0 auto;"></div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">⭐ What Parents Say</span>
+      <h2>Student Testimonials</h2>
+    </div>
+    <div class="testi-track reveal" id="testiTrack"></div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- PRACTICE SCHEDULE -->
+<section id="schedule">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">⏱️ Weekly Timetable</span>
+      <h2>Practice Schedule</h2>
+    </div>
+    <div style="overflow-x:auto;" class="reveal">
+      <table class="sched-table">
+        <thead><tr><th>Batch</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;">Morning</td><td><span class="slot">Batting</span></td><td><span class="slot">Bowling</span></td><td><span class="slot">Fielding</span></td><td><span class="slot">Batting</span></td><td><span class="slot">Fitness</span></td><td><span class="slot">Match Practice</span></td></tr>
+          <tr><td style="font-weight:700;">Evening</td><td><span class="slot">Fielding</span></td><td><span class="slot">Batting</span></td><td><span class="slot">Bowling</span></td><td><span class="slot">Fitness</span></td><td><span class="slot">Batting</span></td><td><span class="slot">Match Practice</span></td></tr>
+          <tr><td style="font-weight:700;">Weekend</td><td colspan="6"><span class="slot">Full Nets Session + Video Analysis</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- ATTENDANCE -->
+<section id="attendance">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">✅ Attendance System</span>
+      <h2>Today's Attendance</h2>
+      <p>Demo view — coaches mark daily student attendance from here.</p>
+    </div>
+    <div class="reveal" id="attList" style="max-width:640px;margin:0 auto;"></div>
+    <p class="reveal" style="text-align:center;margin-top:16px;font-weight:700;" id="attSummary"></p>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- DASHBOARD -->
+<section id="dashboard">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">📈 Analytics</span>
+      <h2>Player Performance Dashboard</h2>
+    </div>
+    <div class="dash-grid reveal">
+      <div class="card-panel">
+        <div class="stat-mini">
+          <div class="stat-box"><div class="n mono">742</div><div class="l">Runs</div></div>
+          <div class="stat-box"><div class="n mono">38</div><div class="l">Wickets</div></div>
+          <div class="stat-box"><div class="n mono">86.4</div><div class="l">Strike Rate</div></div>
+        </div>
+        <canvas id="perfChart" height="220"></canvas>
+      </div>
+      <div class="card-panel">
+        <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin-bottom:14px;">Skill Radar — Mohit Kumar</h3>
+        <canvas id="radarChart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- QR + CERTIFICATE -->
+<section id="tools">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">🎓 Student Tools</span>
+      <h2>QR ID &amp; Certificates</h2>
+    </div>
+    <div class="tool-flex reveal">
+      <div class="tool-box card-panel">
+        <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin-bottom:14px;">📱 QR Code Student ID</h3>
+        <div class="field" style="margin-bottom:14px;"><label>Student Name / ID</label><input id="qrInput" placeholder="e.g. SCA-0142 Rohit Kumar" value="SCA-0142 Rohit Kumar"></div>
+        <button class="btn btn-primary" onclick="generateQR()">Generate QR ID</button>
+        <div style="margin-top:18px;" id="qrcanvas-wrap"><canvas id="qrcanvas"></canvas></div>
+      </div>
+      <div class="tool-box card-panel">
+        <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin-bottom:14px;">🏅 Certificate Download</h3>
+        <div class="field" style="margin-bottom:14px;"><label>Student Name</label><input id="certName" placeholder="Enter name" value="Rohit Kumar"></div>
+        <div class="field" style="margin-bottom:14px;"><label>Achievement</label><input id="certAch" placeholder="Enter achievement" value="Best Batsman of the Season"></div>
+        <button class="btn btn-primary" onclick="downloadCert()">⬇ Download Certificate</button>
+        <div class="cert-preview" style="margin-top:18px;" id="certPreview">
+          <p style="font-family:'Anton';font-size:13px;letter-spacing:2px;color:var(--gold);">SHREESYAM CRICKET ACADEMY</p>
+          <h3 style="margin:14px 0 4px;">Certificate of Excellence</h3>
+          <p style="font-size:13px;">This is proudly presented to</p>
+          <p style="font-family:'Anton';font-size:26px;margin:10px 0;" id="certNamePreview">Rohit Kumar</p>
+          <p style="font-size:13px;" id="certAchPreview">for Best Batsman of the Season</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="seam"></div>
+
+<!-- CONTACT / MAP -->
+<section id="contact">
+  <div class="container">
+    <div class="sec-head reveal">
+      <span class="eyebrow">📍 Reach Us</span>
+      <h2>Google Map &amp; Contact</h2>
+    </div>
+    <div class="contact-grid reveal">
+      <div>
+        <div class="contact-info-item"><div class="ico">📍</div><div><strong>Address</strong><p>Shreeshyam Cricket Ground, Naya Gaon Bypass Bahadurgarh (HR) 124507</p></div></div>
+        <div class="contact-info-item"><div class="ico">📞</div><div><strong>Phone</strong><p>+91 98765 43210</p></div></div>
+        <div class="contact-info-item"><div class="ico">✉️</div><div><strong>Email</strong><p>info@shreeshyamcricket.com</p></div></div>
+        <div class="contact-info-item"><div class="ico">⏰</div><div><strong>Timing</strong><p>Mon–Sat, 6 AM – 8 PM</p></div></div>
+        <iframe src="https://www.google.com/maps?q=Ranchi,Jharkhand&output=embed" width="100%" height="220" style="border:0;border-radius:12px;margin-top:10px;" loading="lazy"></iframe>
+      </div>
+      <div class="card-panel">
+        <div class="field" style="margin-bottom:14px;"><label>Name</label><input id="inqName" placeholder="Your name"></div>
+        <div class="field" style="margin-bottom:14px;"><label>Phone</label><input id="inqPhone" placeholder="Your phone"></div>
+        <div class="field" style="margin-bottom:14px;"><label>Message</label><textarea id="inqMsg" rows="4" placeholder="Write your question here..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" id="inqSubmitBtn" onclick="submitInquiry(event)">Send Message</button>
+        <div class="success-msg" id="inqSuccess" style="display:none;">✅ Thank you! We will get back to you shortly.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo"><img src="logo.png" alt="Shreesyam Cricket Academy Logo"><div class="logo">SHREESHYAM <span>CA</span></div></div>
+        <p style="font-size:14px;color:#c9c2ac;max-width:280px;">Ranchi's premier cricket academy — where talent meets discipline and direction.</p>
+      </div>
+      <div><h4>Quick Links</h4><a href="#coaches">Coaches</a><a href="#admission">Admission</a><a href="#fees">Fees</a><a href="#results">Results</a></div>
+      <div><h4>Programs</h4><a href="#">Batting Clinic</a><a href="#">Bowling Academy</a><a href="#">Fielding Drills</a><a href="#">Fitness Camp</a></div>
+      <div><h4>Follow Us</h4><a href="#">Instagram</a><a href="#">YouTube</a><a href="#">Facebook</a><a href="#">WhatsApp</a></div>
+    </div>
+    <div class="footer-bottom">© 2026 Shreesyam Cricket Academy. All rights reserved. | Made with 🏏 in SSCA BAHADURGARH</div>
+  </div>
+</footer>
+
+<!-- FLOATING BUTTONS -->
+<div class="fab-stack">
+  <a class="fab fab-wa" href="https://wa.me/919876543210?text=Hi!%20I%20would%20like%20to%20know%20more%20about%20admission." target="_blank" title="WhatsApp Admission">💬</a>
+  <button class="fab fab-chat" id="chatToggle" title="AI Chatbot">🤖</button>
+</div>
+
+<!-- CHATBOT -->
+<div class="chat-window" id="chatWindow">
+  <div class="chat-head"><span>🏏 SSCA Assistant</span><button onclick="document.getElementById('chatWindow').classList.remove('show')" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">✕</button></div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-msg chat-bot">Hi! I'm the Shreesyam Cricket Academy assistant. Ask me about admission, fees, or timing.</div>
+  </div>
+  <div class="chat-quick">
+    <button onclick="askBot('Admission')">Admission</button>
+    <button onclick="askBot('Fees')">Fees</button>
+    <button onclick="askBot('Timing')">Timing</button>
+    <button onclick="askBot('Location')">Location</button>
+  </div>
+  <div class="chat-input">
+    <input id="chatInput" placeholder="Type your question..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<button class="btn btn-gold admin-toggle" id="adminOpenBtn" style="border-radius:30px;">⚙️ Admin Panel</button>
+
+<!-- ADMIN LOGIN (shown when not logged in) -->
+<div class="admin-panel" id="adminLoginPanel">
+  <div class="admin-box" style="max-width:380px;">
+    <button class="modal-close" onclick="closeModal('adminLoginPanel')">✕</button>
+    <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin-bottom:6px;">🔐 Admin Login</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:16px;">Sign in with the admin ID &amp; password to control live matches, view registrations, and manage the site.</p>
+    <div class="field" style="margin-bottom:12px;"><label>Admin ID (Email)</label><input id="adminEmail" type="email" placeholder="admin@shreesyamcricket.com"></div>
+    <div class="field" style="margin-bottom:12px;"><label>Password</label><input id="adminPassword" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+    <div id="adminLoginError" style="color:#c0392b;font-size:13px;margin-bottom:10px;display:none;"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="adminLogin()">Login</button>
+    <p style="font-size:11px;color:#999;margin-top:14px;">First time setup? See SETUP_GUIDE.md included with this site to create your admin login for free using Firebase.</p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL (shown after login) -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-box" style="max-width:760px;">
+    <button class="modal-close" onclick="closeModal('adminPanel')">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
+      <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin:0;">⚙️ Admin Portal</h3>
+      <button class="btn btn-outline" style="padding:8px 16px;font-size:12px;border-color:var(--ball);color:var(--ball);" onclick="adminLogout()">Logout</button>
+    </div>
+    <p style="font-size:13px;color:#888;margin-bottom:14px;">Logged in as <strong id="adminWhoAmI"></strong></p>
+
+    <div class="admin-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:2px solid #eee;padding-bottom:10px;">
+      <button class="admin-tab-btn active" data-tab="tabLive" onclick="showAdminTab('tabLive',this)">🔴 Live Match</button>
+      <button class="admin-tab-btn" data-tab="tabRegs" onclick="showAdminTab('tabRegs',this)">📋 Registrations</button>
+      <button class="admin-tab-btn" data-tab="tabInq" onclick="showAdminTab('tabInq',this)">✉️ Inquiries</button>
+      <button class="admin-tab-btn" data-tab="tabNews" onclick="showAdminTab('tabNews',this)">📰 News</button>
+      <button class="admin-tab-btn" data-tab="tabResults" onclick="showAdminTab('tabResults',this)">🏆 Results</button>
+      <button class="admin-tab-btn" data-tab="tabSections" onclick="showAdminTab('tabSections',this)">🧩 Sections</button>
+    </div>
+
+    <!-- LIVE MATCH CONTROL -->
+    <div class="admin-tab-panel" id="tabLive">
+      <div id="matchSetupBox">
+        <h4 style="margin-bottom:10px;">Start a New Live Match</h4>
+        <div class="form-grid">
+          <div class="field"><label>Team A (Batting first)</label><input id="setupTeamA" placeholder="e.g. Shreesyam Colts"></div>
+          <div class="field"><label>Team B</label><input id="setupTeamB" placeholder="e.g. Bahadurgarh Warriors"></div>
+          <div class="field"><label>Venue</label><input id="setupVenue" placeholder="e.g. Shreeshyam Ground, Bahadurgarh"></div>
+          <div class="field"><label>Overs Format (optional)</label><input id="setupOversLimit" type="number" placeholder="e.g. 20"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="startNewMatch()">▶️ Start Live Match</button>
+      </div>
+
+      <div id="matchControlBox" style="display:none;">
+        <h4 style="margin-bottom:6px;">Controlling: <span id="ctrlTitle"></span></h4>
+        <p style="font-size:13px;color:#888;margin-bottom:12px;">Tap a ball outcome to update the live scoreboard instantly for everyone visiting the site.</p>
+        <div class="admin-ball-btns" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <button class="btn btn-outline" onclick="addBall(0)">0</button>
+          <button class="btn btn-outline" onclick="addBall(1)">1</button>
+          <button class="btn btn-outline" onclick="addBall(2)">2</button>
+          <button class="btn btn-outline" onclick="addBall(3)">3</button>
+          <button class="btn btn-primary" onclick="addBall(4)">4</button>
+          <button class="btn btn-primary" onclick="addBall(6)">6</button>
+          <button class="btn btn-gold" onclick="addBall('W')">Wicket</button>
+          <button class="btn btn-outline" onclick="addExtra('wd')">Wide</button>
+          <button class="btn btn-outline" onclick="addExtra('nb')">No Ball</button>
+          <button class="btn btn-outline" onclick="undoLastBall()">↩️ Undo</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <button class="btn btn-outline" onclick="endInnings()">End Innings</button>
+          <button class="btn btn-outline" style="border-color:var(--ball);color:var(--ball);" onclick="endMatch()">🏁 End Match</button>
+        </div>
+        <div class="field" style="max-width:340px;"><label>Set / Update Target (2nd innings)</label>
+          <div style="display:flex;gap:8px;"><input id="ctrlTarget" type="number" placeholder="e.g. 155"><button class="btn btn-outline" onclick="setTarget()">Set</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTRATIONS -->
+    <div class="admin-tab-panel" id="tabRegs" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h4 style="margin:0;">Admission Registrations (<span id="regsCount">0</span>)</h4>
+        <button class="btn btn-outline" style="padding:8px 14px;font-size:12px;" onclick="exportCSV('registrations')">⬇️ Export CSV</button>
+      </div>
+      <div id="regsList" style="max-height:360px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- INQUIRIES -->
+    <div class="admin-tab-panel" id="tabInq" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h4 style="margin:0;">Contact Inquiries (<span id="inqCount">0</span>)</h4>
+        <button class="btn btn-outline" style="padding:8px 14px;font-size:12px;" onclick="exportCSV('inquiries')">⬇️ Export CSV</button>
+      </div>
+      <div id="inqList" style="max-height:360px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- NEWS EDITOR -->
+    <div class="admin-tab-panel" id="tabNews" style="display:none;">
+      <h4 style="margin-bottom:10px;">Manage News / Notices</h4>
+      <div class="form-grid">
+        <div class="field"><label>Date label</label><input id="newsDate" placeholder="e.g. 05 Jul"></div>
+        <div class="field"><label>Tag</label><input id="newsTag" placeholder="e.g. Notice / Result / Event"></div>
+      </div>
+      <div class="field" style="margin:10px 0;"><label>Text</label><input id="newsText" placeholder="Notice text..."></div>
+      <button class="btn btn-primary" onclick="addNewsItem()">+ Add News Item</button>
+      <div id="newsAdminList" style="margin-top:14px;max-height:260px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- RESULTS EDITOR -->
+    <div class="admin-tab-panel" id="tabResults" style="display:none;">
+      <h4 style="margin-bottom:10px;">Manage Match Results</h4>
+      <div class="form-grid">
+        <div class="field"><label>Date</label><input id="resDate" placeholder="e.g. 12 Jun 2026"></div>
+        <div class="field"><label>Match</label><input id="resMatch" placeholder="e.g. vs Bahadurgarh Warriors"></div>
+        <div class="field"><label>Score</label><input id="resScore" placeholder="e.g. 186/6 vs 154/9"></div>
+        <div class="field"><label>Result</label>
+          <select id="resResult"><option value="win">Win</option><option value="loss">Loss</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="addResultItem()">+ Add Result</button>
+      <div id="resAdminList" style="margin-top:14px;max-height:260px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- SECTION TOGGLES -->
+    <div class="admin-tab-panel" id="tabSections" style="display:none;">
+      <h4 style="margin-bottom:10px;">Show / Hide Sections</h4>
+      <div id="adminRows"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   FIREBASE SETUP
+   -----------------------------------------------------------------
+   Replace the values below with YOUR OWN Firebase project's config.
+   This makes registrations, inquiries, the live scoreboard and news/
+   results REAL and shared across every visitor's device — not just a
+   local demo. See SETUP_GUIDE.md for step-by-step instructions
+   (free, takes about 10 minutes, no coding required).
+===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDBuZ58csunrwnQ8CKSabDKVIMkVvsV53c",
+  authDomain: "shreesyam-cricket-academy.firebaseapp.com",
+  projectId: "shreesyam-cricket-academy",
+  storageBucket: "shreesyam-cricket-academy.firebasestorage.app",
+  messagingSenderId: "841547476210",
+  appId: "1:841547476210:web:b347ac93d0232cbc69b46b",
+  measurementId: "G-G7H3GQ54ND"
+};
+let fbReady = false;
+let db, auth;
+try{
+  if(firebaseConfig.apiKey !== "YOUR_API_KEY"){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+    fbReady = true;
+  }
+}catch(e){ console.warn('Firebase not configured yet:', e); }
+
+function requireFirebase(actionLabel){
+  if(!fbReady){
+    alert('⚠️ Database not connected yet.\n\nOpen SETUP_GUIDE.md, create a free Firebase project, and paste your config into the firebaseConfig object near the top of index.html. Once that\'s done, "' + actionLabel + '" will work for real, live, across every visitor.');
+    return false;
+  }
+  return true;
+}
+
+/* ---------- THEME TOGGLE ---------- */
+const themeBtn = document.getElementById('themeToggle');
+themeBtn.onclick = ()=>{
+  document.body.classList.toggle('dark');
+  themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+};
+
+/* ---------- MOBILE NAV ---------- */
+const hamburger = document.getElementById('hamburger');
+const navlinks = document.getElementById('navlinks');
+hamburger.onclick = ()=> navlinks.classList.toggle('open');
+navlinks.querySelectorAll('a').forEach(a=>a.onclick=()=>navlinks.classList.remove('open'));
+
+/* ---------- SCROLL REVEAL ---------- */
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ---------- LIVE MATCH (real, admin-controlled, synced via Firestore) ---------- */
+const commentaryTexts = {
+  '0':'Dot ball — tight line, no run.',
+  '1':'Pushed away for a single.',
+  '2':'Driven through covers, they come back for two.',
+  '3':'Good running between the wickets, three taken.',
+  '4':'Cracked through the gap — races away to the boundary for FOUR!',
+  '6':'Launched over long-on — that is out of the park, SIX!',
+  'W':'Big appeal... and given! A wicket falls.',
+  'wd':'Called for a wide — extra run added.',
+  'nb':'No ball! Free hit coming up, extra run added.'
+};
+function emptyInnings(){ return {runs:0, wkts:0, overs:0, balls:0, ballLog:[]}; }
+function blankMatch(){
+  return {status:'not_started', teamA:'', teamB:'', venue:'', oversLimit:null,
+    inningsIndex:1, target:null,
+    innings1: emptyInnings(), innings2: emptyInnings(),
+    commentary: []};
+}
+let currentMatch = null;
+
+function renderLiveSection(m){
+  const noCard = document.getElementById('noLiveCard');
+  const card = document.getElementById('liveCard');
+  if(!m || m.status === 'not_started'){
+    noCard.style.display = ''; card.style.display = 'none'; return;
+  }
+  noCard.style.display = 'none'; card.style.display = '';
+  const inn1 = m.innings1, inn2 = m.innings2;
+  const battingInn = m.inningsIndex === 1 ? inn1 : inn2;
+  document.getElementById('liveInningsLabel').textContent = (m.inningsIndex === 1 ? '1st' : '2nd') + ' Innings' + (m.status==='ended' ? ' — Match Ended' : '');
+  document.getElementById('teamAName').textContent = m.teamA || 'Team A';
+  document.getElementById('teamBName').textContent = m.teamB || 'Team B';
+  document.getElementById('teamAScore').textContent = inn1.runs + '/' + inn1.wkts;
+  document.getElementById('teamAOvers').textContent = inn1.overs + '.' + inn1.balls;
+  document.getElementById('venueVal').textContent = m.venue || '-';
+
+  if(m.inningsIndex === 1){
+    document.getElementById('teamBScore').textContent = 'Yet to bat';
+    document.getElementById('teamBStatus').textContent = '';
+    document.getElementById('targetRow').style.display = 'none';
+    document.getElementById('needRow').style.display = 'none';
+  } else {
+    document.getElementById('teamBScore').textContent = inn2.runs + '/' + inn2.wkts;
+    document.getElementById('teamBStatus').textContent = 'Overs: ' + inn2.overs + '.' + inn2.balls;
+    if(m.target){
+      document.getElementById('targetRow').style.display = '';
+      document.getElementById('targetVal').textContent = m.target;
+      document.getElementById('needRow').style.display = '';
+      const need = Math.max(m.target - inn2.runs, 0);
+      document.getElementById('needRuns').textContent = m.status==='ended' ? '—' : (need > 0 ? need + ' runs' : 'Target reached!');
+    }
+  }
+  const oversFloat = battingInn.overs + battingInn.balls/6;
+  document.getElementById('crrVal').textContent = oversFloat > 0 ? (battingInn.runs/oversFloat).toFixed(2) : '0.00';
+
+  const ballsWrap = document.getElementById('liveBalls');
+  const last12 = battingInn.ballLog.slice(-12);
+  ballsWrap.innerHTML = last12.map(ev=>{
+    const cls = ev==='4'?'four':ev==='6'?'six':ev==='W'?'wicket':'';
+    const label = ev==='wd'?'Wd':ev==='nb'?'Nb':ev;
+    return `<div class="ball-chip ${cls}">${label}</div>`;
+  }).join('');
+
+  const feed = document.getElementById('commentaryFeed');
+  feed.innerHTML = (m.commentary||[]).slice(-8).reverse().map(c=>
+    `<div class="c-item"><span class="c-over">${c.over}</span>${c.text}</div>`).join('');
+}
+
+if(fbReady){
+  db.collection('matches').doc('current').onSnapshot(doc=>{
+    currentMatch = doc.exists ? doc.data() : null;
+    renderLiveSection(currentMatch);
+    renderAdminMatchControls();
+  }, err=>console.warn('live match listener error', err));
+} else {
+  renderLiveSection(null);
+}
+
+function renderAdminMatchControls(){
+  const setupBox = document.getElementById('matchSetupBox');
+  const ctrlBox = document.getElementById('matchControlBox');
+  if(!setupBox) return; // admin panel not in DOM context yet
+  const active = currentMatch && currentMatch.status !== 'not_started' && currentMatch.status !== 'ended';
+  setupBox.style.display = active ? 'none' : '';
+  ctrlBox.style.display = active ? '' : 'none';
+  if(active){
+    document.getElementById('ctrlTitle').textContent = `${currentMatch.teamA} vs ${currentMatch.teamB} (${currentMatch.inningsIndex===1?'1st':'2nd'} Innings)`;
+  }
+}
+
+async function startNewMatch(){
+  if(!requireFirebase('Start Live Match')) return;
+  const teamA = document.getElementById('setupTeamA').value.trim();
+  const teamB = document.getElementById('setupTeamB').value.trim();
+  const venue = document.getElementById('setupVenue').value.trim();
+  const oversLimit = document.getElementById('setupOversLimit').value.trim();
+  if(!teamA || !teamB){ alert('Please enter both team names.'); return; }
+  const m = blankMatch();
+  m.teamA = teamA; m.teamB = teamB; m.venue = venue || '-';
+  m.oversLimit = oversLimit ? parseInt(oversLimit,10) : null;
+  m.status = 'live';
+  m.startedAt = firebase.firestore.FieldValue.serverTimestamp();
+  await db.collection('matches').doc('current').set(m);
+}
+
+function currentBattingKey(){ return currentMatch.inningsIndex === 1 ? 'innings1' : 'innings2'; }
+
+async function addBall(ev){
+  if(!currentMatch || currentMatch.status !== 'live') return;
+  const key = currentBattingKey();
+  const inn = {...currentMatch[key]};
+  inn.ballLog = [...(inn.ballLog||[])];
+  if(ev === 'W'){ inn.wkts = Math.min((inn.wkts||0)+1, 10); }
+  else { inn.runs = (inn.runs||0) + ev; }
+  inn.ballLog.push(String(ev));
+  inn.balls = (inn.balls||0) + 1;
+  if(inn.balls > 5){ inn.overs = (inn.overs||0) + 1; inn.balls = 0; }
+  const overLabel = inn.overs + '.' + inn.balls;
+  const commentary = [...(currentMatch.commentary||[]), {over: overLabel, text: commentaryTexts[String(ev)] || ''}];
+  await db.collection('matches').doc('current').update({ [key]: inn, commentary });
+}
+
+async function addExtra(type){
+  if(!currentMatch || currentMatch.status !== 'live') return;
+  const key = currentBattingKey();
+  const inn = {...currentMatch[key]};
+  inn.ballLog = [...(inn.ballLog||[]), type];
+  inn.runs = (inn.runs||0) + 1;
+  const commentary = [...(currentMatch.commentary||[]), {over: inn.overs+'.'+inn.balls, text: commentaryTexts[type]}];
+  await db.collection('matches').doc('current').update({ [key]: inn, commentary });
+}
+
+async function undoLastBall(){
+  if(!currentMatch || currentMatch.status !== 'live') return;
+  const key = currentBattingKey();
+  const inn = {...currentMatch[key]};
+  if(!inn.ballLog || !inn.ballLog.length) return;
+  const last = inn.ballLog.pop();
+  if(last === 'wd' || last === 'nb'){ inn.runs -= 1; }
+  else if(last === 'W'){ inn.wkts = Math.max((inn.wkts||1)-1, 0); }
+  else {
+    inn.runs -= parseInt(last,10);
+    if(inn.balls === 0){ inn.overs = Math.max((inn.overs||1)-1, 0); inn.balls = 5; } else { inn.balls -= 1; }
+  }
+  const commentary = (currentMatch.commentary||[]).slice(0,-1);
+  await db.collection('matches').doc('current').update({ [key]: inn, commentary });
+}
+
+async function setTarget(){
+  if(!currentMatch) return;
+  const t = parseInt(document.getElementById('ctrlTarget').value, 10);
+  if(!t){ alert('Enter a valid target.'); return; }
+  await db.collection('matches').doc('current').update({ target: t });
+}
+
+async function endInnings(){
+  if(!currentMatch) return;
+  if(currentMatch.inningsIndex === 1){
+    const target = currentMatch.innings1.runs + 1;
+    await db.collection('matches').doc('current').update({ inningsIndex: 2, target });
+  } else {
+    alert('Already in the 2nd innings. Use "End Match" to finish.');
+  }
+}
+
+async function endMatch(){
+  if(!currentMatch) return;
+  if(!confirm('End this live match? It will move to Results once you add it manually in the Results tab.')) return;
+  await db.collection('matches').doc('current').update({ status:'ended' });
+}
+
+/* ---------- COACHES ---------- */
+const coaches = [
+  {name:"Mohit Kumar", role:"Head Coach — Batting", img:"https://images.unsplash.com/photo-1531384441138-2736e62e0919?q=80&w=400&auto=format&fit=crop", tags:["Batting","15+ Yrs Exp"]},
+  {name:"Ankush kumar", role:"Bowling Coach", img:"https://images.unsplash.com/photo-1500468756762-a401b6f17b46?q=80&w=400&auto=format&fit=crop", tags:["Fast Bowling","BCCI Level 2"]},
+  {name:"Ashok & Amit", role:"Fielding & Fitness Coach", img:"https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop", tags:["State Player","Fitness Expert"]},
+];
+document.getElementById('coachGrid').innerHTML = coaches.map(c=>`
+  <div class="coach-card">
+    <div class="coach-img"><img src="${c.img}" alt="${c.name}"></div>
+    <div class="coach-body">
+      <h3>${c.name}</h3>
+      <div class="coach-role">${c.role}</div>
+      <div class="coach-tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+  </div>`).join('');
+
+/* ---------- ADMISSION FORM ---------- */
+document.getElementById('admissionForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const data = {
+    name: document.getElementById('admName').value.trim(),
+    age: document.getElementById('admAge').value.trim(),
+    phone: document.getElementById('admPhone').value.trim(),
+    email: document.getElementById('admEmail').value.trim(),
+    batch: document.getElementById('admBatch').value,
+    level: document.getElementById('admLevel').value,
+    message: document.getElementById('admMsg').value.trim(),
+    createdAt: fbReady ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
+  };
+  if(fbReady){
+    const btn = document.getElementById('admSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    try{
+      await db.collection('registrations').add(data);
+    }catch(err){
+      alert('Something went wrong submitting your form. Please try again or contact us on WhatsApp.');
+      console.error(err);
+      btn.disabled = false; btn.textContent = 'Submit Admission Form';
+      return;
+    }
+    btn.disabled = false; btn.textContent = 'Submit Admission Form';
+  } else {
+    console.warn('Firebase not configured — registration not saved permanently:', data);
+  }
+  document.getElementById('admSuccess').style.display='block';
+  this.reset();
+  this.querySelector('.success-msg')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+
+/* ---------- CONTACT / INQUIRY FORM ---------- */
+async function submitInquiry(e){
+  e.preventDefault();
+  const name = document.getElementById('inqName').value.trim();
+  const phone = document.getElementById('inqPhone').value.trim();
+  const message = document.getElementById('inqMsg').value.trim();
+  if(!name || !phone || !message){ alert('Please fill your name, phone and message.'); return; }
+  const data = { name, phone, message, createdAt: fbReady ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString() };
+  const btn = document.getElementById('inqSubmitBtn');
+  if(fbReady){
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try{
+      await db.collection('inquiries').add(data);
+    }catch(err){
+      alert('Something went wrong sending your message. Please try WhatsApp instead.');
+      console.error(err);
+      btn.disabled = false; btn.textContent = 'Send Message';
+      return;
+    }
+    btn.disabled = false; btn.textContent = 'Send Message';
+  } else {
+    console.warn('Firebase not configured — inquiry not saved permanently:', data);
+  }
+  document.getElementById('inqSuccess').style.display = 'block';
+  document.getElementById('inqName').value = '';
+  document.getElementById('inqPhone').value = '';
+  document.getElementById('inqMsg').value = '';
+}
+
+/* ---------- FEE PAYMENT MODAL ---------- */
+document.querySelectorAll('.pay-btn').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.getElementById('payPlanText').textContent = btn.dataset.plan + " Plan";
+    document.getElementById('payAmt').value = "₹" + btn.dataset.amt;
+    document.getElementById('payModal').classList.add('show');
+  };
+});
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function confirmPay(){
+  document.getElementById('payModal').classList.remove('show');
+  alert('✅ Payment Successful! A receipt has been sent to your email. (Demo)');
+}
+
+/* ---------- GALLERY ---------- */
+const galleryImgs = [
+  "https://images.unsplash.com/photo-1607734834519-d8576ae60ea6?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1531162009984-4d2c3e18ea60?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1626248801379-51a0748a5f96?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1595435934336-2b7f9d4bf1d3?q=80&w=500&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1544919982-b61976f0ba43?q=80&w=500&auto=format&fit=crop",
+];
+document.getElementById('galleryGrid').innerHTML = galleryImgs.map(src=>`<img src="${src}" onclick="openLightbox('${src}')">`).join('');
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+document.getElementById('lightbox').onclick = function(e){ if(e.target===this) this.classList.remove('show'); };
+
+/* ---------- RESULTS (default fallback shown until admin adds real results) ---------- */
+const defaultResults = [
+  {date:"12 Jun 2026", match:"vs Bahadurgarh Warriors", score:"186/6 vs 154/9", result:"win"},
+  {date:"28 May 2026", match:"vs Naya Gaon Dhurender", score:"142/8 vs 145/4", result:"loss"},
+  {date:"14 May 2026", match:"vs Dhanbad Strikers U-16 Cup", score:"210/5 vs 178/8", result:"win"},
+  {date:"02 May 2026", match:"vs HR Lions Final", score:"165/7 vs 160/9", result:"win"},
+];
+function renderResults(list){
+  const rows = list.length ? list : defaultResults;
+  document.getElementById('resultsBody').innerHTML = rows.map(r=>`
+    <tr><td>${r.date}</td><td>${r.match}</td><td class="mono">${r.score}</td>
+    <td><span class="result-pill ${r.result}">${r.result==='win'?'🏆 WON':'LOST'}</span></td></tr>`).join('');
+}
+let liveResults = [];
+renderResults(liveResults);
+if(fbReady){
+  db.collection('results').orderBy('createdAt','desc').onSnapshot(snap=>{
+    liveResults = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderResults(liveResults);
+    renderAdminResultsList();
+  }, err=>console.warn('results listener error', err));
+}
+
+/* ---------- NEWS (default fallback shown until admin adds real news) ---------- */
+const defaultNews = [
+  {date:"05 Jul", tag:"Notice", text:"Admissions are now open for the new batch — limited seats available!"},
+  {date:"28 Jun", tag:"Result", text:"Our U-16 team won the Dhanbad Cup — congratulations, champions!"},
+  {date:"15 Jun", tag:"Event", text:"Summer Cricket Camp begins on 20th June."},
+];
+function renderNews(list){
+  const rows = list.length ? list : defaultNews;
+  document.getElementById('newsList').innerHTML = rows.map(n=>`
+    <div class="news-item"><div class="news-date">${n.date}</div>
+    <div><span class="tag">${n.tag}</span><p style="margin-top:6px;">${n.text}</p></div></div>`).join('');
+}
+let liveNews = [];
+renderNews(liveNews);
+if(fbReady){
+  db.collection('news').orderBy('createdAt','desc').onSnapshot(snap=>{
+    liveNews = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderNews(liveNews);
+    renderAdminNewsList();
+  }, err=>console.warn('news listener error', err));
+}
+
+/* ---------- TESTIMONIALS ---------- */
+const testis = [
+  {name:"Sunita Devi", role:"Parent of Aryan", txt:"Shreesyam completely transformed my son's confidence. The coaches teach with so much patience.", img:"https://i.pravatar.cc/80?img=32"},
+  {name:"Manoj Tiwari", role:"Parent of Kabir", txt:"Best cricket academy in Ranchi. They build discipline and skills in equal measure.", img:"https://i.pravatar.cc/80?img=12"},
+  {name:"Priya Singh", role:"Parent of Anaya", txt:"The girls' coaching program is excellent too. Anaya has now been selected for the district team.", img:"https://i.pravatar.cc/80?img=45"},
+];
+document.getElementById('testiTrack').innerHTML = testis.map(t=>`
+  <div class="testi-card"><div class="stars">★★★★★</div><p style="font-size:14px;">"${t.txt}"</p>
+  <div class="testi-user"><img src="${t.img}"><div><strong style="font-size:14px;">${t.name}</strong><p style="font-size:12px;color:#888;">${t.role}</p></div></div></div>`).join('');
+
+/* ---------- ATTENDANCE ---------- */
+const students = ["Rohit Kumar","Aryan Sharma","Kabir Das","Anaya Singh","Vivaan Roy"];
+let attendance = {};
+document.getElementById('attList').innerHTML = students.map((s,i)=>`
+  <div class="att-row"><span>${s}</span>
+  <div class="att-btns">
+    <button class="att-p" data-i="${i}" onclick="markAtt(${i},true,this)">Present</button>
+    <button class="att-a" data-i="${i}" onclick="markAtt(${i},false,this)">Absent</button>
+  </div></div>`).join('');
+function markAtt(i,present,btn){
+  attendance[i]=present;
+  const row = btn.closest('.att-row');
+  row.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateAttSummary();
+}
+function updateAttSummary(){
+  const vals = Object.values(attendance);
+  const p = vals.filter(v=>v===true).length;
+  const a = vals.filter(v=>v===false).length;
+  document.getElementById('attSummary').textContent = `Present: ${p} · Absent: ${a} · Not marked: ${students.length - vals.length}`;
+}
+updateAttSummary();
+
+/* ---------- PERFORMANCE DASHBOARD ---------- */
+try{
+  if(typeof Chart !== 'undefined'){
+    new Chart(document.getElementById('perfChart'), {
+      type:'bar',
+      data:{ labels:['Jan','Feb','Mar','Apr','May','Jun'],
+        datasets:[{label:'Runs Scored', data:[65,90,120,80,150,237], backgroundColor:'#C0392B', borderRadius:6}]},
+      options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+    });
+    new Chart(document.getElementById('radarChart'), {
+      type:'radar',
+      data:{ labels:['Batting','Bowling','Fielding','Fitness','Strategy','Temperament'],
+        datasets:[{label:'Rohit Kumar', data:[85,60,75,80,70,90], backgroundColor:'rgba(212,166,42,.3)', borderColor:'#D4A62A', pointBackgroundColor:'#D4A62A'}]},
+      options:{plugins:{legend:{display:false}}}
+    });
+  } else {
+    console.warn('Chart.js did not load (offline or blocked CDN) — dashboard charts skipped.');
+  }
+}catch(e){ console.warn('Chart render skipped:', e); }
+
+/* ---------- QR CODE ---------- */
+function generateQR(){
+  try{
+    if(typeof QRCode === 'undefined'){ console.warn('QRCode library did not load — skipping.'); return; }
+    const val = document.getElementById('qrInput').value || 'SCA-0000';
+    QRCode.toCanvas(document.getElementById('qrcanvas'), val, {width:180, color:{dark:'#0B3D2E', light:'#ffffff'}});
+  }catch(e){ console.warn('QR generation skipped:', e); }
+}
+generateQR();
+
+/* ---------- CERTIFICATE ---------- */
+document.getElementById('certName').addEventListener('input', e=>{ document.getElementById('certNamePreview').textContent = e.target.value || 'Student Name'; });
+document.getElementById('certAch').addEventListener('input', e=>{ document.getElementById('certAchPreview').textContent = 'for ' + (e.target.value || 'Achievement'); });
+
+function downloadCert(){
+  const name = document.getElementById('certName').value || 'Student Name';
+  const ach = document.getElementById('certAch').value || 'Achievement';
+  const canvas = document.createElement('canvas');
+  canvas.width = 1000; canvas.height = 650;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fdfcf6'; ctx.fillRect(0,0,1000,650);
+  ctx.strokeStyle = '#D4A62A'; ctx.lineWidth = 10; ctx.strokeRect(20,20,960,610);
+  ctx.strokeStyle = '#0B3D2E'; ctx.lineWidth = 2; ctx.strokeRect(36,36,928,578);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#D4A62A'; ctx.font = '700 22px sans-serif'; ctx.fillText('SHREESYAM CRICKET ACADEMY', 500, 130);
+  ctx.fillStyle = '#0B3D2E'; ctx.font = '700 44px Georgia'; ctx.fillText('Certificate of Excellence', 500, 200);
+  ctx.fillStyle = '#444'; ctx.font = '20px sans-serif'; ctx.fillText('This certificate is proudly presented to', 500, 270);
+  ctx.fillStyle = '#C0392B'; ctx.font = '700 46px Georgia'; ctx.fillText(name, 500, 350);
+  ctx.fillStyle = '#444'; ctx.font = '20px sans-serif'; ctx.fillText('for ' + ach, 500, 400);
+  ctx.font = '16px sans-serif'; ctx.fillText(new Date().toLocaleDateString('en-IN'), 500, 560);
+  ctx.fillText('Head Coach, Shreesyam Cricket Academy', 500, 585);
+  const link = document.createElement('a');
+  link.download = name.replace(/\s+/g,'_') + '_certificate.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/* ---------- AI CHATBOT ---------- */
+const chatToggle = document.getElementById('chatToggle');
+chatToggle.onclick = ()=> document.getElementById('chatWindow').classList.toggle('show');
+const botReplies = {
+  'admission':'For admission, fill out the "Admission Form" above, or tap the WhatsApp button. Seats are limited!',
+  'fees':'We offer 3 plans: Monthly ₹1,999, Quarterly ₹5,499, Annual ₹18,999. See the "Fees" section for details.',
+  'timing':'Morning batch: 6AM–8AM, Evening batch: 4PM–6PM, Weekend: Full nets session.',
+  'location':'We are located on Kanke Road, Ranchi, Jharkhand. See the map in the contact section below.',
+  'default':'Sorry, I am still learning! You can ask me about admission, fees, timing, or location, or chat with us directly on WhatsApp.'
+};
+function appendMsg(text, cls){
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + cls;
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+function askBot(topic){
+  appendMsg(topic, 'chat-user');
+  const key = topic.toLowerCase();
+  setTimeout(()=> appendMsg(botReplies[key] || botReplies.default, 'chat-bot'), 400);
+}
+function sendChat(){
+  const input = document.getElementById('chatInput');
+  const val = input.value.trim();
+  if(!val) return;
+  appendMsg(val, 'chat-user');
+  input.value='';
+  const lower = val.toLowerCase();
+  let reply = botReplies.default;
+  for(const k in botReplies){ if(lower.includes(k)) { reply = botReplies[k]; break; } }
+  setTimeout(()=> appendMsg(reply, 'chat-bot'), 400);
+}
+
+/* ---------- ADMIN PANEL: section show/hide toggles ---------- */
+const sections = [
+  {id:'live', label:'Live Match Section'},
+  {id:'coaches', label:'Coaches Section'},
+  {id:'fees', label:'Fee Payment Section'},
+  {id:'gallery', label:'Gallery Section'},
+  {id:'testimonials', label:'Testimonials Section'},
+  {id:'dashboard', label:'Performance Dashboard'},
+  {id:'tools', label:'QR & Certificate Tools'},
+];
+const adminRows = document.getElementById('adminRows');
+adminRows.innerHTML = sections.map(s=>`
+  <div class="admin-row"><span>${s.label}</span><div class="switch on" data-target="${s.id}" onclick="toggleSection(this)"></div></div>`).join('');
+function toggleSection(el){
+  el.classList.toggle('on');
+  const sec = document.getElementById(el.dataset.target);
+  sec.style.display = el.classList.contains('on') ? '' : 'none';
+}
+
+/* ---------- ADMIN PANEL: tabs ---------- */
+function showAdminTab(tabId, btn){
+  document.querySelectorAll('.admin-tab-panel').forEach(p=>p.style.display='none');
+  document.getElementById(tabId).style.display='';
+  document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ---------- ADMIN PANEL: login / logout ---------- */
+document.getElementById('adminOpenBtn').onclick = ()=>{
+  if(!fbReady){
+    document.getElementById('adminLoginPanel').classList.add('show');
+    return;
+  }
+  if(auth.currentUser){
+    document.getElementById('adminPanel').classList.add('show');
+  } else {
+    document.getElementById('adminLoginPanel').classList.add('show');
+  }
+};
+
+async function adminLogin(){
+  const errBox = document.getElementById('adminLoginError');
+  errBox.style.display = 'none';
+  if(!requireFirebase('Admin Login')) return;
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass = document.getElementById('adminPassword').value;
+  if(!email || !pass){ errBox.textContent = 'Enter your admin ID and password.'; errBox.style.display='block'; return; }
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    document.getElementById('adminPassword').value = '';
+    closeModal('adminLoginPanel');
+    document.getElementById('adminPanel').classList.add('show');
+  }catch(err){
+    errBox.textContent = 'Login failed: ' + (err.message || 'check your ID and password.');
+    errBox.style.display = 'block';
+  }
+}
+function adminLogout(){
+  if(fbReady) auth.signOut();
+  closeModal('adminPanel');
+}
+if(fbReady){
+  auth.onAuthStateChanged(user=>{
+    document.getElementById('adminWhoAmI').textContent = user ? user.email : '';
+    if(!user) closeModal('adminPanel');
+  });
+}
+
+/* ---------- ADMIN PANEL: Registrations (real DB) ---------- */
+function fmtTime(ts){
+  try{
+    if(!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleString('en-IN');
+  }catch(e){ return ''; }
+}
+let regsCache = [], inqCache = [];
+if(fbReady){
+  db.collection('registrations').orderBy('createdAt','desc').onSnapshot(snap=>{
+    regsCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    document.getElementById('regsCount').textContent = regsCache.length;
+    document.getElementById('regsList').innerHTML = regsCache.map(r=>`
+      <div class="data-row">
+        <div class="drow-top"><span>${r.name || '-'} (${r.age || '-'})</span><span>${r.batch || ''}</span></div>
+        <div class="drow-meta">📞 ${r.phone || '-'} · ✉️ ${r.email || '-'} · ${r.level || ''}</div>
+        ${r.message ? `<div class="drow-meta">💬 ${r.message}</div>` : ''}
+        <div class="drow-meta">${fmtTime(r.createdAt)}</div>
+        <button onclick="deleteDoc('registrations','${r.id}')">Delete</button>
+      </div>`).join('') || '<p style="font-size:13px;color:#999;">No registrations yet.</p>';
+  }, err=>console.warn('registrations listener error', err));
+
+  db.collection('inquiries').orderBy('createdAt','desc').onSnapshot(snap=>{
+    inqCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    document.getElementById('inqCount').textContent = inqCache.length;
+    document.getElementById('inqList').innerHTML = inqCache.map(r=>`
+      <div class="data-row">
+        <div class="drow-top"><span>${r.name || '-'}</span><span>${r.phone || ''}</span></div>
+        <div class="drow-meta">💬 ${r.message || ''}</div>
+        <div class="drow-meta">${fmtTime(r.createdAt)}</div>
+        <button onclick="deleteDoc('inquiries','${r.id}')">Delete</button>
+      </div>`).join('') || '<p style="font-size:13px;color:#999;">No inquiries yet.</p>';
+  }, err=>console.warn('inquiries listener error', err));
+}
+
+async function deleteDoc(col, id){
+  if(!confirm('Delete this entry?')) return;
+  await db.collection(col).doc(id).delete();
+}
+
+function exportCSV(col){
+  const rows = col === 'registrations' ? regsCache : inqCache;
+  if(!rows.length){ alert('Nothing to export yet.'); return; }
+  const keys = Object.keys(rows[0]).filter(k=>k!=='id' && k!=='createdAt');
+  const header = ['date', ...keys].join(',');
+  const lines = rows.map(r=> [fmtTime(r.createdAt), ...keys.map(k=>`"${(r[k]||'').toString().replace(/"/g,'""')}"`)].join(','));
+  const csv = [header, ...lines].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = col + '_export.csv';
+  link.click();
+}
+
+/* ---------- ADMIN PANEL: News editor ---------- */
+async function addNewsItem(){
+  if(!requireFirebase('Add News')) return;
+  const date = document.getElementById('newsDate').value.trim();
+  const tag = document.getElementById('newsTag').value.trim();
+  const text = document.getElementById('newsText').value.trim();
+  if(!date || !tag || !text){ alert('Fill date, tag and text.'); return; }
+  await db.collection('news').add({date, tag, text, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  document.getElementById('newsDate').value=''; document.getElementById('newsTag').value=''; document.getElementById('newsText').value='';
+}
+function renderAdminNewsList(){
+  const box = document.getElementById('newsAdminList');
+  if(!box) return;
+  box.innerHTML = liveNews.map(n=>`
+    <div class="data-row"><div class="drow-top"><span>${n.date} · ${n.tag}</span></div>
+    <div class="drow-meta">${n.text}</div>
+    <button onclick="deleteDoc('news','${n.id}')">Delete</button></div>`).join('') || '<p style="font-size:13px;color:#999;">No custom news yet — default items are shown on the site.</p>';
+}
+
+/* ---------- ADMIN PANEL: Results editor ---------- */
+async function addResultItem(){
+  if(!requireFirebase('Add Result')) return;
+  const date = document.getElementById('resDate').value.trim();
+  const match = document.getElementById('resMatch').value.trim();
+  const score = document.getElementById('resScore').value.trim();
+  const result = document.getElementById('resResult').value;
+  if(!date || !match || !score){ alert('Fill date, match and score.'); return; }
+  await db.collection('results').add({date, match, score, result, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  document.getElementById('resDate').value=''; document.getElementById('resMatch').value=''; document.getElementById('resScore').value='';
+}
+function renderAdminResultsList(){
+  const box = document.getElementById('resAdminList');
+  if(!box) return;
+  box.innerHTML = liveResults.map(r=>`
+    <div class="data-row"><div class="drow-top"><span>${r.date} · ${r.match}</span><span>${r.result==='win'?'🏆':'❌'}</span></div>
+    <div class="drow-meta">${r.score}</div>
+    <button onclick="deleteDoc('results','${r.id}')">Delete</button></div>`).join('') || '<p style="font-size:13px;color:#999;">No custom results yet — default items are shown on the site.</p>';
+}
+
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
