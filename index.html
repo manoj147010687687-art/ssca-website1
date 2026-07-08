@@ -1293,7 +1293,8 @@ const galleryImgs = [
   "4.jpg",
   "5.jpg",
   "6.jpg",
-  "7.jpg"
+  "7.jpg",
+  "1.mp4"
 ];
 document.getElementById('galleryGrid').innerHTML = galleryImgs.map(src=>`<img src="${src}" onclick="openLightbox('${src}')">`).join('');
 function openLightbox(src){
