@@ -1151,9 +1151,24 @@ async function endMatch(){
 
 /* ---------- COACHES ---------- */
 const coaches = [
-  {name:"Mohit Kumar", role:"Head Coach — Batting", img:"1.jpg", tags:["Batting","15+ Yrs Exp"]},
-  {name:"Ankush kumar", role:"Bowling Coach", img:"https://images.unsplash.com/photo-1500468756762-a401b6f17b46?q=80&w=400&auto=format&fit=crop", tags:["Fast Bowling","BCCI Level 2"]},
-  {name:"Ashok & Amit", role:"Fielding & Fitness Coach", img:"https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop", tags:["State Player","Fitness Expert"]},
+  {
+    name: "Mohit Kumar",
+    role: "Head Coach — Batting",
+    img: "1.jpg",
+    tags: ["Batting", "15+ Yrs Exp"]
+  },
+  {
+    name: "Ankush Kumar",
+    role: "Bowling Coach",
+    img: "2.jpg",
+    tags: ["Fast Bowling", "BCCI Level 2"]
+  },
+  {
+    name: "Ashok & Amit",
+    role: "Fielding & Fitness Coach",
+    img: "3.jpg",
+    tags: ["State Player", "Fitness Expert"]
+  }
 ];
 document.getElementById('coachGrid').innerHTML = coaches.map(c=>`
   <div class="coach-card">
