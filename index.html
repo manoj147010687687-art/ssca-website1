@@ -184,8 +184,13 @@ body.dark #live{background:linear-gradient(180deg,#081a13,#0d2a1f);}
 body.dark .coach-card{background:var(--ink-2);border-color:#1c2e40;}
 .coach-card:hover{transform:translateY(-8px);}
 .coach-img img{
+    aspect-ratio: 1/1;
+    width: 100%;
     object-fit: cover;
-    object-position: center 20%;
+    object-position: top center; /* Face upar se nahi katega */
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform .3s;
 }
 .coach-img img{width:100%;height:100%;object-fit:cover;}
 .coach-body{padding:18px 20px 22px;}
@@ -1174,7 +1179,7 @@ const coaches = [
   {
     name: "Ankush Kumar",
     role: "Bowling Coach",
-    img: "8.jpeg",
+    img: "16.jpeg",
     tags: ["Fast Bowling", "5+ Yrs Exp","Fitness Expert"]
   },
   {
