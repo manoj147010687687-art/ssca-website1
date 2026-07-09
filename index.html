@@ -18,6 +18,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;600;700&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- jsPDF (for downloadable scorecard PDFs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <!-- FIREBASE (real database + admin login + live sync across all visitors) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -151,30 +154,126 @@ body.dark .sec-head .eyebrow{background:rgba(212,166,42,.12);border-color:var(--
 .sec-head p{margin-top:14px;color:#5a6b62;font-size:16px;}
 body.dark .sec-head p{color:#9fb3ab;}
 
-/* LIVE MATCH */
-#live{background:linear-gradient(180deg, var(--pitch), var(--pitch-2));color:#fff;}
-body.dark #live{background:linear-gradient(180deg,#081a13,#0d2a1f);}
-#live .sec-head p{color:#cfe0d6;}
-.live-card{background:rgba(0,0,0,.28);border:2px solid var(--gold);border-radius:16px;padding:30px;max-width:900px;margin:0 auto;backdrop-filter:blur(6px);}
-.live-badge{display:inline-flex;align-items:center;gap:8px;background:#ff4d4d;color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+/* LIVE MATCH — broadcast scoreboard theme */
+#live{background:linear-gradient(160deg,#060c16 0%,#0b1728 45%,#0d1f30 100%);color:#fff;position:relative;overflow:hidden;}
+body.dark #live{background:linear-gradient(160deg,#04080f,#0a1420);}
+#live::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(212,166,42,.10) 1px, transparent 1px);background-size:26px 26px;opacity:.4;pointer-events:none;}
+#live::after{content:"";position:absolute;top:-10%;left:50%;width:140%;height:60%;transform:translateX(-50%);background:radial-gradient(ellipse at center, rgba(212,166,42,.10), transparent 65%);pointer-events:none;}
+#live .sec-head p{color:#a9b7c9;}
+.live-card{background:linear-gradient(150deg, rgba(255,255,255,.05), rgba(255,255,255,.015));border:1px solid rgba(212,166,42,.35);border-radius:16px;padding:30px;max-width:920px;margin:0 auto;backdrop-filter:blur(10px);position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);z-index:1;}
+.live-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--ball),var(--gold));}
+.live-card-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;position:relative;z-index:2;}
+.live-badge{display:inline-flex;align-items:center;gap:8px;background:#ff4d4d;color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 0 16px rgba(255,77,77,.55);}
 @keyframes pulse{0%{opacity:1;}50%{opacity:.3;}100%{opacity:1;}}
 .live-badge .dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite;}
-.live-teams{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.share-btn{background:rgba(212,166,42,.12);border:1.5px solid var(--gold);color:var(--gold);font-size:12px;font-weight:700;padding:7px 15px;border-radius:20px;cursor:pointer;transition:.2s;white-space:nowrap;}
+.share-btn:hover{background:var(--gold);color:#0b1420;transform:translateY(-1px);}
+.live-teams{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;position:relative;z-index:2;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px 16px;}
 .live-team{text-align:center;flex:1;min-width:140px;}
-.live-team .tname{font-family:'Anton';font-size:20px;letter-spacing:.5px;}
-.live-team .tscore{font-family:'JetBrains Mono';font-size:34px;color:var(--gold);font-weight:700;margin-top:6px;}
-.live-team .tovers{font-size:12px;color:#cfe0d6;margin-top:4px;}
-.live-vs{font-family:'Anton';font-size:16px;color:var(--gold);opacity:.8;}
-.live-meta{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.15);font-size:13px;color:#dce8e0;}
+.team-avatar{width:46px;height:46px;border-radius:50%;background:rgba(212,166,42,.14);border:2px solid var(--gold);color:var(--gold);font-family:'Anton';font-size:19px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
+.live-team .tname{font-family:'Anton';font-size:19px;letter-spacing:.5px;color:#dfe6ee;}
+.live-team .tscore{font-family:'JetBrains Mono';font-size:37px;color:#fff;font-weight:700;margin-top:6px;text-shadow:0 0 18px rgba(212,166,42,.4);}
+.live-team .tovers{font-size:12px;color:#8fa0b3;margin-top:4px;letter-spacing:.3px;}
+.live-vs{font-family:'Anton';font-size:15px;color:var(--gold);opacity:.85;}
+.target-bar-wrap{margin-top:20px;position:relative;z-index:2;}
+.target-bar{height:10px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+.target-bar-fill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--ball-2));transition:width .7s cubic-bezier(.22,.9,.3,1);}
+.target-bar-label{margin-top:6px;text-align:center;font-size:12px;color:#a9b7c9;letter-spacing:.3px;}
+.live-meta{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;color:#a9b7c9;position:relative;z-index:2;}
 .live-meta strong{color:var(--gold);}
-.live-balls{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
-.ball-chip{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);}
-.ball-chip.four{background:#2e9e5b;}
-.ball-chip.six{background:var(--ball);}
-.ball-chip.wicket{background:#111;border-color:#ff4d4d;color:#ff4d4d;}
-.commentary{margin-top:20px;max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font-size:13px;padding-right:6px;}
-.commentary .c-item{background:rgba(255,255,255,.06);padding:8px 12px;border-radius:8px;border-left:3px solid var(--gold);}
-.commentary .c-item .c-over{color:var(--gold);font-family:'JetBrains Mono';font-weight:700;margin-right:8px;}
+#rrrVal{transition:color .3s;}
+.live-balls{display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap;position:relative;z-index:2;}
+.ball-chip{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#dfe6ee;animation:ballIn .35s ease backwards;}
+@keyframes ballIn{from{transform:scale(.3);opacity:0;}to{transform:scale(1);opacity:1;}}
+.ball-chip.four{background:rgba(46,158,91,.9);border-color:#2e9e5b;color:#fff;}
+.ball-chip.six{background:var(--ball);border-color:var(--ball);color:#fff;box-shadow:0 0 14px rgba(192,57,43,.6);}
+.ball-chip.wicket{background:#1a0f0f;border-color:#ff4d4d;color:#ff8a8a;}
+.ball-chip:last-child{outline:2px solid var(--gold);outline-offset:2px;}
+.sr-tag,.eco-badge{display:inline-block;background:rgba(212,166,42,.16);color:var(--gold);font-size:10.5px;padding:2px 7px;border-radius:10px;margin-left:6px;font-weight:700;vertical-align:middle;white-space:nowrap;}
+.oncrease-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px;position:relative;z-index:2;}
+.oncrease-item{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;text-align:center;}
+.oncrease-item .oc-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:#7b8ca0;margin-bottom:5px;}
+.oncrease-item .oc-val{font-size:13px;font-weight:700;line-height:1.5;color:#eaeef3;}
+.oncrease-item.striker{border-color:var(--gold);background:rgba(212,166,42,.08);}
+.commentary{margin-top:20px;max-height:170px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font-size:13px;padding-right:6px;position:relative;z-index:2;}
+.commentary .c-item{background:rgba(0,0,0,.22);padding:9px 12px;border-radius:8px;border-left:3px solid var(--gold);display:flex;align-items:flex-start;gap:8px;animation:cIn .3s ease backwards;color:#d6dee7;}
+@keyframes cIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);}}
+.commentary .c-icon{font-size:14px;flex-shrink:0;}
+.commentary .c-over{color:var(--gold);font-family:'JetBrains Mono';font-weight:700;flex-shrink:0;}
+.commentary .c-item.c-four{border-left-color:#2e9e5b;background:rgba(46,158,91,.1);}
+.commentary .c-item.c-six{border-left-color:var(--ball);background:rgba(192,57,43,.14);}
+.commentary .c-item.c-wicket{border-left-color:#ff4d4d;background:rgba(255,77,77,.1);}
+.event-toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.4);font-family:'Anton';font-size:44px;color:var(--gold);text-shadow:0 4px 22px rgba(0,0,0,.65);opacity:0;pointer-events:none;z-index:6;letter-spacing:1px;}
+.event-toast.show{animation:toastPop 1.4s ease-out;}
+@keyframes toastPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4);}15%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}28%{transform:translate(-50%,-50%) scale(1);}78%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(1.3);}}
+@keyframes flashFour{0%{box-shadow:0 0 0 0 rgba(46,158,91,.9);}100%{box-shadow:0 0 70px 24px rgba(46,158,91,0);}}
+@keyframes flashSix{0%{box-shadow:0 0 0 0 rgba(212,166,42,1);}100%{box-shadow:0 0 90px 32px rgba(212,166,42,0);}}
+@keyframes flashWicket{0%{box-shadow:0 0 0 0 rgba(255,77,77,1);}100%{box-shadow:0 0 70px 24px rgba(255,77,77,0);}}
+.live-card.flash-four{animation:flashFour 1.1s ease-out;}
+.live-card.flash-six{animation:flashSix 1.2s ease-out;}
+.live-card.flash-wicket{animation:flashWicket 1.1s ease-out;}
+#noLiveCard .no-live-icon{font-size:42px;margin-bottom:10px;animation:floatBall 2.4s ease-in-out infinite;}
+@keyframes floatBall{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-9px) rotate(12deg);}}
+
+/* LIVE MODULE — tabs (Current / Recent / Upcoming) */
+.live-tabs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:34px;position:relative;z-index:2;}
+.live-tab-btn{background:rgba(255,255,255,.05);border:1.5px solid rgba(212,166,42,.35);color:#c9d4e0;padding:10px 20px;border-radius:24px;font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:7px;}
+.live-tab-btn .cnt{background:rgba(212,166,42,.2);color:var(--gold);border-radius:10px;padding:1px 7px;font-size:11px;}
+.live-tab-btn.active{background:var(--gold);color:#0b1420;border-color:var(--gold);}
+.live-tab-btn.active .cnt{background:rgba(0,0,0,.18);color:#0b1420;}
+.live-tab-btn:hover{transform:translateY(-1px);}
+.live-tab-panel{display:none;}
+.live-tab-panel.active{display:block;}
+
+/* Recent match cards */
+.match-hist-card{background:linear-gradient(150deg, rgba(255,255,255,.05), rgba(255,255,255,.015));border:1px solid rgba(212,166,42,.22);border-radius:14px;padding:20px 22px;max-width:920px;margin:0 auto 16px;position:relative;z-index:1;}
+.match-hist-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+.match-hist-teams{font-family:'Anton';font-size:16px;letter-spacing:.4px;color:#eaeef3;}
+.match-hist-date{font-size:11.5px;color:#8fa0b3;letter-spacing:.3px;}
+.match-hist-score{font-family:'JetBrains Mono';font-size:14px;color:#dfe6ee;margin-bottom:8px;}
+.match-hist-result{display:inline-block;background:rgba(212,166,42,.14);color:var(--gold);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:10px;}
+.match-hist-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.match-hist-actions button{background:rgba(212,166,42,.1);border:1.5px solid var(--gold);color:var(--gold);font-size:11.5px;font-weight:700;padding:7px 13px;border-radius:20px;cursor:pointer;transition:.2s;}
+.match-hist-actions button:hover{background:var(--gold);color:#0b1420;}
+.hist-search{max-width:400px;margin:0 auto 26px;position:relative;z-index:2;}
+.hist-search input{width:100%;padding:11px 16px;border-radius:22px;border:1.5px solid rgba(212,166,42,.35);background:rgba(255,255,255,.06);color:#fff;font-size:13px;outline:none;}
+.hist-search input::placeholder{color:#8fa0b3;}
+.empty-tab-msg{text-align:center;color:#8fa0b3;font-size:14px;padding:30px 10px;max-width:500px;margin:0 auto;}
+
+/* Upcoming match cards */
+.upcoming-card{background:linear-gradient(150deg, rgba(255,255,255,.05), rgba(255,255,255,.015));border:1px solid rgba(212,166,42,.3);border-radius:16px;padding:24px;max-width:920px;margin:0 auto 18px;position:relative;overflow:hidden;z-index:1;}
+.upcoming-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--ball-2),var(--gold));}
+.upcoming-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,166,42,.15);border:1px solid var(--gold);color:var(--gold);font-weight:800;font-size:11.5px;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+.upcoming-teams{font-family:'Anton';font-size:22px;color:#fff;letter-spacing:.4px;margin-bottom:6px;}
+.upcoming-meta-row{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:#a9b7c9;margin-bottom:14px;}
+.upcoming-meta-row strong{color:var(--gold);}
+.countdown-wrap{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+.countdown-cell{background:rgba(0,0,0,.25);border:1px solid rgba(212,166,42,.3);border-radius:10px;padding:10px 14px;text-align:center;min-width:64px;}
+.countdown-cell .cd-num{font-family:'JetBrains Mono';font-size:22px;font-weight:700;color:var(--gold);}
+.countdown-cell .cd-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#8fa0b3;margin-top:2px;}
+.upcoming-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.upcoming-actions button{background:rgba(212,166,42,.1);border:1.5px solid var(--gold);color:var(--gold);font-size:11.5px;font-weight:700;padding:8px 14px;border-radius:20px;cursor:pointer;transition:.2s;}
+.upcoming-actions button:hover{background:var(--gold);color:#0b1420;}
+.upcoming-actions button.notified{background:#2e9e5b;border-color:#2e9e5b;color:#fff;}
+
+/* Win predictor */
+.win-predict-wrap{margin-top:18px;position:relative;z-index:2;}
+.win-predict-label{display:flex;justify-content:space-between;font-size:11.5px;color:#a9b7c9;margin-bottom:5px;letter-spacing:.3px;}
+.win-predict-bar{height:14px;border-radius:8px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,.1);}
+.win-predict-bar .wp-a{background:linear-gradient(90deg,#2e9e5b,#57c98a);height:100%;transition:width .6s ease;}
+.win-predict-bar .wp-b{background:linear-gradient(90deg,var(--ball),var(--ball-2));height:100%;transition:width .6s ease;}
+
+/* Match setup: player chips */
+.team-name-row{display:flex;gap:8px;flex-wrap:wrap;}
+.team-name-row input{flex:1;min-width:140px;}
+.squad-load-btn{padding:8px 12px !important;font-size:11px !important;white-space:nowrap;}
+.player-count{font-weight:400;text-transform:none;letter-spacing:0;color:#999;font-size:11.5px;margin-left:6px;}
+.player-add-row{display:flex;gap:8px;}
+.player-add-row input{flex:1;}
+.chip-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;min-height:10px;}
+.player-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(212,166,42,.14);border:1px solid var(--gold);color:var(--text-dark);font-size:12.5px;font-weight:600;padding:5px 6px 5px 12px;border-radius:20px;}
+body.dark .player-chip{color:#eee;}
+.player-chip button{background:none;border:none;color:var(--ball);font-size:15px;cursor:pointer;line-height:1;padding:2px 4px;}
 
 /* COACHES */
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
@@ -362,7 +461,7 @@ body.dark .chat-quick button{background:#16283a;color:#eee;}
 .admin-toggle{position:fixed;bottom:24px;left:20px;z-index:2500;}
 .admin-panel{position:fixed;inset:0;background:rgba(6,15,11,.7);z-index:4000;display:none;align-items:center;justify-content:center;padding:20px;}
 .admin-panel.show{display:flex;}
-.admin-box{background:#fff;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;border-radius:14px;padding:30px;}
+.admin-box{background:#fff;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;border-radius:14px;padding:30px;position:relative;}
 body.dark .admin-box{background:var(--ink-2);color:#eee;}
 .admin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee;}
 body.dark .admin-row{border-color:#1c2e40;}
@@ -439,50 +538,93 @@ body.dark .data-row{border-color:#1c2e40;}
       <p>Follow our academy team in real time — live scores, overs and ball-by-ball commentary. Controlled live by the acedemy admin.</p>
     </div>
 
-    <div class="live-card reveal" id="noLiveCard" style="display:none;text-align:center;">
-      <div style="font-size:15px;color:var(--tan);font-weight:700;">📴 No live match right now</div>
-      <p style="margin-top:8px;font-size:14px;">Check back during our next match — scores will appear here automatically the moment our admin starts the live scoreboard.</p>
+    <!-- LIVE MODULE TABS -->
+    <div class="live-tabs reveal">
+      <button class="live-tab-btn active" data-livetab="liveTabCurrent" onclick="showLiveTab('liveTabCurrent',this)">🔴 Current Match</button>
+      <button class="live-tab-btn" data-livetab="liveTabUpcoming" onclick="showLiveTab('liveTabUpcoming',this)">📅 Upcoming <span class="cnt" id="upcomingCount">0</span></button>
+      <button class="live-tab-btn" data-livetab="liveTabRecent" onclick="showLiveTab('liveTabRecent',this)">📜 Recent Matches <span class="cnt" id="recentCount">0</span></button>
     </div>
 
-    <div class="live-card reveal" id="liveCard" style="display:none;">
-      <div class="live-badge" id="liveBadgeText"><span class="dot"></span> LIVE — <span id="liveInningsLabel">1st Innings</span></div>
-      <div class="live-teams">
-        <div class="live-team">
-          <div class="tname" id="teamAName">Team A</div>
-          <div class="tscore mono" id="teamAScore">0/0</div>
-          <div class="tovers">Overs: <span id="teamAOvers">0.0</span></div>
-        </div>
-        <div class="live-vs">VS</div>
-        <div class="live-team">
-          <div class="tname" id="teamBName">Team B</div>
-          <div class="tscore mono" id="teamBScore">Yet to bat</div>
-          <div class="tovers" id="teamBStatus"></div>
-        </div>
-      </div>
-      <div class="live-meta">
-        <span id="targetRow" style="display:none;">Target: <strong id="targetVal">-</strong></span>
-        <span id="needRow" style="display:none;">Need: <strong id="needRuns">-</strong></span>
-        <span>CRR: <strong id="crrVal">0.00</strong></span>
-        <span id="rrrRow" style="display:none;">RRR: <strong id="rrrVal">0.00</strong></span>
-        <span>Venue: <strong id="venueVal">-</strong></span>
-      </div>
-      <div id="tossLine" style="font-size:12.5px;color:var(--tan);margin-top:6px;"></div>
-
-      <div id="onCrease" style="margin-top:14px;display:none;">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:13.5px;">
-          <div><strong id="strikerLine">-</strong><div style="font-size:11.5px;color:#999;">Striker</div></div>
-          <div><strong id="nonStrikerLine">-</strong><div style="font-size:11.5px;color:#999;">Non-striker</div></div>
-          <div><strong id="bowlerLine">-</strong><div style="font-size:11.5px;color:#999;">Bowler</div></div>
-          <div><strong id="partnershipLine">-</strong><div style="font-size:11.5px;color:#999;">Partnership</div></div>
-        </div>
+    <!-- TAB: CURRENT MATCH -->
+    <div class="live-tab-panel active" id="liveTabCurrent">
+      <div class="live-card reveal" id="noLiveCard" style="display:none;text-align:center;">
+        <div class="no-live-icon">🏏</div>
+        <div style="font-size:15px;color:var(--tan);font-weight:700;">No live match right now</div>
+        <p style="margin-top:8px;font-size:14px;">Check back during our next match — scores will appear here automatically the moment our admin starts the live scoreboard. Meanwhile check the <strong>Upcoming</strong> tab for the next fixture.</p>
       </div>
 
-      <div class="live-balls" id="liveBalls"></div>
-      <div class="commentary" id="commentaryFeed"></div>
+      <div class="live-card reveal" id="liveCard" style="display:none;">
+        <div class="event-toast" id="eventToast"></div>
+        <div class="live-card-head">
+          <div class="live-badge" id="liveBadgeText"><span class="dot"></span> LIVE — <span id="liveInningsLabel">1st Innings</span></div>
+          <button class="share-btn" id="shareScoreBtn" onclick="shareScore()">📤 Share Score</button>
+        </div>
+        <div class="live-teams">
+          <div class="live-team">
+            <div class="team-avatar" id="teamAAvatar">A</div>
+            <div class="tname" id="teamAName">Team A</div>
+            <div class="tscore mono" id="teamAScore">0/0</div>
+            <div class="tovers">Overs: <span id="teamAOvers">0.0</span></div>
+          </div>
+          <div class="live-vs">VS</div>
+          <div class="live-team">
+            <div class="team-avatar" id="teamBAvatar">B</div>
+            <div class="tname" id="teamBName">Team B</div>
+            <div class="tscore mono" id="teamBScore">Yet to bat</div>
+            <div class="tovers" id="teamBStatus"></div>
+          </div>
+        </div>
 
-      <div id="momLine" style="display:none;margin-top:14px;font-size:13.5px;background:rgba(212,166,42,.12);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;"></div>
+        <div class="target-bar-wrap" id="targetBarWrap" style="display:none;">
+          <div class="target-bar"><div class="target-bar-fill" id="targetBarFill"></div></div>
+          <div class="target-bar-label" id="targetBarLabel"></div>
+        </div>
 
-      <button class="btn btn-outline" style="margin-top:14px;padding:9px 16px;font-size:12.5px;" onclick="openScorecard()">📊 View Full Scorecard</button>
+        <div class="live-meta">
+          <span id="targetRow" style="display:none;">Target: <strong id="targetVal">-</strong></span>
+          <span id="needRow" style="display:none;">Need: <strong id="needRuns">-</strong></span>
+          <span>CRR: <strong id="crrVal">0.00</strong></span>
+          <span id="rrrRow" style="display:none;">RRR: <strong id="rrrVal">0.00</strong></span>
+          <span>Venue: <strong id="venueVal">-</strong></span>
+        </div>
+        <div id="tossLine" style="font-size:12.5px;color:var(--tan);margin-top:6px;"></div>
+
+        <div id="onCrease" style="display:none;">
+          <div class="oncrease-grid">
+            <div class="oncrease-item striker"><div class="oc-label">🏏 Striker</div><div class="oc-val" id="strikerLine">-</div></div>
+            <div class="oncrease-item"><div class="oc-label">Non-striker</div><div class="oc-val" id="nonStrikerLine">-</div></div>
+            <div class="oncrease-item"><div class="oc-label">🎯 Bowler</div><div class="oc-val" id="bowlerLine">-</div></div>
+            <div class="oncrease-item"><div class="oc-label">🤝 Partnership</div><div class="oc-val" id="partnershipLine">-</div></div>
+          </div>
+        </div>
+
+        <div id="winPredictWrap" class="win-predict-wrap" style="display:none;">
+          <div class="win-predict-label"><span id="wpTeamALabel">Team A</span><span id="wpTeamBLabel">Team B</span></div>
+          <div class="win-predict-bar"><div class="wp-a" id="wpBarA" style="width:50%;"></div><div class="wp-b" id="wpBarB" style="width:50%;"></div></div>
+          <div class="win-predict-label" style="margin-top:5px;"><strong id="wpPctA">50%</strong><strong id="wpPctB">50%</strong></div>
+        </div>
+
+        <div class="live-balls" id="liveBalls"></div>
+        <div class="commentary" id="commentaryFeed"></div>
+
+        <div id="momLine" style="display:none;margin-top:14px;font-size:13.5px;background:rgba(212,166,42,.12);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;"></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+          <button class="btn btn-outline" style="padding:9px 16px;font-size:12.5px;" onclick="openScorecard()">📊 View Full Scorecard</button>
+          <button class="btn btn-outline" style="padding:9px 16px;font-size:12.5px;" onclick="downloadScorecardPDF(currentMatch)">⬇️ Download PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: UPCOMING MATCHES -->
+    <div class="live-tab-panel" id="liveTabUpcoming">
+      <div id="upcomingMatchesList"></div>
+    </div>
+
+    <!-- TAB: RECENT MATCHES -->
+    <div class="live-tab-panel" id="liveTabRecent">
+      <div class="hist-search"><input type="text" id="recentSearchInput" placeholder="🔍 Search by team name..." oninput="renderRecentMatches()"></div>
+      <div id="recentMatchesList"></div>
     </div>
   </div>
 </section>
@@ -491,7 +633,10 @@ body.dark .data-row{border-color:#1c2e40;}
 <div class="admin-panel" id="scorecardModal">
   <div class="admin-box" style="max-width:820px;">
     <button class="modal-close" onclick="closeModal('scorecardModal')">✕</button>
-    <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin-bottom:10px;">📊 Full Scorecard</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <h3 style="font-family:'Work Sans';font-weight:800;text-transform:none;margin:0;">📊 Full Scorecard</h3>
+      <button class="btn btn-outline" style="padding:8px 16px;font-size:12px;" onclick="downloadScorecardPDF(window.__scorecardMatch)">⬇️ Download PDF</button>
+    </div>
     <div id="scorecardBody" style="max-height:65vh;overflow-y:auto;"></div>
   </div>
 </div>
@@ -866,6 +1011,8 @@ body.dark .data-row{border-color:#1c2e40;}
 
     <div class="admin-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:2px solid #eee;padding-bottom:10px;">
       <button class="admin-tab-btn active" data-tab="tabLive" onclick="showAdminTab('tabLive',this)">🔴 Live Match</button>
+      <button class="admin-tab-btn" data-tab="tabTeams" onclick="showAdminTab('tabTeams',this)">🧑‍🤝‍🧑 Saved Teams</button>
+      <button class="admin-tab-btn" data-tab="tabUpcoming" onclick="showAdminTab('tabUpcoming',this)">📅 Upcoming</button>
       <button class="admin-tab-btn" data-tab="tabRegs" onclick="showAdminTab('tabRegs',this)">📋 Registrations</button>
       <button class="admin-tab-btn" data-tab="tabInq" onclick="showAdminTab('tabInq',this)">✉️ Inquiries</button>
       <button class="admin-tab-btn" data-tab="tabNews" onclick="showAdminTab('tabNews',this)">📰 News</button>
@@ -879,13 +1026,46 @@ body.dark .data-row{border-color:#1c2e40;}
       <!-- STEP 1: MATCH SETUP -->
       <div id="matchSetupBox">
         <h4 style="margin-bottom:10px;">1️⃣ Create Match</h4>
+        <p style="font-size:12px;color:#888;margin-bottom:10px;">💡 Teams you've used before are saved permanently — just pick them from the dropdown and their full player list loads automatically. Pick "+ Add New Team" only for a team that has never played before.</p>
         <div class="form-grid">
-          <div class="field"><label>Team A</label><input id="setupTeamA" placeholder="e.g. Shreesyam Colts"></div>
-          <div class="field"><label>Team B</label><input id="setupTeamB" placeholder="e.g. Bahadurgarh Warriors"></div>
+          <div class="field">
+            <label>Team A</label>
+            <div class="team-name-row">
+              <select id="teamSelA" onchange="onTeamSelect('A')" style="flex:1;min-width:140px;">
+                <option value="__new__">+ Add New Team</option>
+              </select>
+            </div>
+            <input id="setupTeamA" placeholder="New team name" style="margin-top:8px;">
+          </div>
+          <div class="field">
+            <label>Team B</label>
+            <div class="team-name-row">
+              <select id="teamSelB" onchange="onTeamSelect('B')" style="flex:1;min-width:140px;">
+                <option value="__new__">+ Add New Team</option>
+              </select>
+            </div>
+            <input id="setupTeamB" placeholder="New team name" style="margin-top:8px;">
+          </div>
         </div>
-        <div class="form-grid" style="margin-top:10px;">
-          <div class="field"><label>Team A Players (comma separated)</label><input id="setupTeamAPlayers" placeholder="e.g. Rohit, Virat, Mohit, ..."></div>
-          <div class="field"><label>Team B Players (comma separated)</label><input id="setupTeamBPlayers" placeholder="e.g. Rahul, Suraj, Deepak, ..."></div>
+        <div class="form-grid" style="margin-top:14px;align-items:start;">
+          <div class="field">
+            <label>Team A Players <span class="player-count" id="countA">0 added</span></label>
+            <div class="player-add-row">
+              <input id="playerInputA" placeholder="Player name — press Enter to add" onkeydown="if(event.key==='Enter'){event.preventDefault();addPlayerChip('A');}">
+              <button type="button" class="btn btn-outline" onclick="addPlayerChip('A')">+ Add</button>
+            </div>
+            <div class="chip-list" id="chipsA"></div>
+            <input type="hidden" id="setupTeamAPlayers">
+          </div>
+          <div class="field">
+            <label>Team B Players <span class="player-count" id="countB">0 added</span></label>
+            <div class="player-add-row">
+              <input id="playerInputB" placeholder="Player name — press Enter to add" onkeydown="if(event.key==='Enter'){event.preventDefault();addPlayerChip('B');}">
+              <button type="button" class="btn btn-outline" onclick="addPlayerChip('B')">+ Add</button>
+            </div>
+            <div class="chip-list" id="chipsB"></div>
+            <input type="hidden" id="setupTeamBPlayers">
+          </div>
         </div>
         <div class="form-grid" style="margin-top:10px;">
           <div class="field"><label>Ground</label><input id="setupVenue" placeholder="e.g. Shreeshyam Ground, Bahadurgarh"></div>
@@ -953,7 +1133,7 @@ body.dark .data-row{border-color:#1c2e40;}
           <strong style="display:block;margin-bottom:8px;">🎯 Wicket Details</strong>
           <div class="form-grid">
             <div class="field"><label>Dismissal Type</label>
-              <select id="wicketTypeSel">
+              <select id="wicketTypeSel" onchange="refreshFielderField()">
                 <option value="bowled">Bowled</option>
                 <option value="caught">Caught</option>
                 <option value="lbw">LBW</option>
@@ -963,6 +1143,10 @@ body.dark .data-row{border-color:#1c2e40;}
               </select>
             </div>
             <div class="field"><label>Batsman Out</label><select id="wicketBatsmanSel"></select></div>
+          </div>
+          <div class="field" id="wicketFielderField" style="margin-top:10px;display:none;">
+            <label id="wicketFielderLabel">Fielder / Catcher</label>
+            <select id="wicketFielderSel"></select>
           </div>
           <div style="display:flex;gap:8px;margin-top:10px;">
             <button class="btn btn-gold" onclick="confirmWicket()">Confirm Wicket</button>
@@ -987,6 +1171,32 @@ body.dark .data-row{border-color:#1c2e40;}
         <button class="btn btn-primary" style="margin-top:14px;" onclick="finalizeMatch()">✅ Save Final Result &amp; Scorecard</button>
         <button class="btn btn-outline" style="margin-top:14px;margin-left:8px;" onclick="resetForNewMatch()">🔄 Start a Fresh Match</button>
       </div>
+    </div>
+
+    <!-- SAVED TEAMS MANAGER -->
+    <div class="admin-tab-panel" id="tabTeams" style="display:none;">
+      <h4 style="margin-bottom:6px;">🧑‍🤝‍🧑 Saved Teams</h4>
+      <p style="font-size:12.5px;color:#888;margin-bottom:12px;">Teams and their players are saved automatically the first time you use them in Match Setup — no need to re-enter a team that has already played. Delete a team here if it was added by mistake or is no longer needed.</p>
+      <div id="savedTeamsAdminList" style="max-height:340px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- UPCOMING MATCHES EDITOR -->
+    <div class="admin-tab-panel" id="tabUpcoming" style="display:none;">
+      <h4 style="margin-bottom:10px;">📅 Add Upcoming Match</h4>
+      <div class="form-grid">
+        <div class="field"><label>Team A Name</label><input id="upTeamA" placeholder="e.g. Shreesyam Colts"></div>
+        <div class="field"><label>Team B Name</label><input id="upTeamB" placeholder="e.g. Bahadurgarh Warriors"></div>
+      </div>
+      <div class="form-grid" style="margin-top:10px;">
+        <div class="field"><label>Match Date</label><input id="upDate" type="date"></div>
+        <div class="field"><label>Match Time</label><input id="upTime" type="time"></div>
+      </div>
+      <div class="form-grid" style="margin-top:10px;">
+        <div class="field"><label>Venue / Ground</label><input id="upVenue" placeholder="e.g. Shreeshyam Ground, Bahadurgarh"></div>
+        <div class="field"><label>Tournament / Notes</label><input id="upNotes" placeholder="e.g. District T20 League — Match 4"></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="addUpcomingMatch()">+ Add Upcoming Match</button>
+      <div id="upcomingAdminList" style="margin-top:16px;max-height:280px;overflow-y:auto;"></div>
     </div>
 
     <!-- REGISTRATIONS -->
@@ -1117,7 +1327,7 @@ function commentaryTexts(ev, name){
 function dismissalLabel(type, bowler, extra){
   const labels = {
     bowled:`b. ${bowler}`, caught:`c. ${extra||'fielder'} b. ${bowler}`, lbw:`lbw b. ${bowler}`,
-    runout:'run out', stumped:`st. ${extra||'keeper'} b. ${bowler}`, hitwicket:`hit wicket b. ${bowler}`
+    runout: extra ? `run out (${extra})` : 'run out', stumped:`st. ${extra||'keeper'} b. ${bowler}`, hitwicket:`hit wicket b. ${bowler}`
   };
   return labels[type] || type;
 }
@@ -1133,7 +1343,7 @@ function blankMatch(){
     tossWinner:'', tossDecision:'',
     inningsIndex:1, target:null, needNewBowler:false,
     innings1: emptyInnings('A','B'), innings2: emptyInnings('B','A'),
-    commentary: [], manOfMatch:'', resultText:''};
+    commentary: [], manOfMatch:'', resultText:'', scorecardDocId:''};
 }
 let currentMatch = null;
 let undoStack = [];
@@ -1156,13 +1366,75 @@ async function commitMatch(m, pushUndo){
 function fmtBatsman(inn, name){
   if(!name || !inn.batsmen[name]) return '-';
   const b = inn.batsmen[name];
-  return `${name} ${b.runs}${b.out?'':'*'} (${b.balls})`;
+  const sr = b.balls ? ((b.runs/b.balls)*100).toFixed(1) : '0.0';
+  return `${name} ${b.runs}${b.out?'':'*'} (${b.balls}b)<span class="sr-tag">SR ${sr}</span>`;
 }
 function fmtBowler(inn, name){
   if(!name || !inn.bowlers[name]) return '-';
   const b = inn.bowlers[name];
   const overs = Math.floor(b.balls/6) + '.' + (b.balls%6);
-  return `${name} ${overs}-${b.runs}-${b.wkts}`;
+  const econ = b.balls ? (b.runs/(b.balls/6)).toFixed(1) : '0.0';
+  return `${name} ${overs}-${b.runs}-${b.wkts}<span class="eco-badge">Eco ${econ}</span>`;
+}
+function commentaryIcon(text){
+  const t = (text||'').toLowerCase();
+  if(t.includes('out!')) return '🔴';
+  if(t.includes('six')) return '🚀';
+  if(t.includes('four')) return '⚡';
+  if(t.includes('dot ball')) return '⚫';
+  if(t.includes('wide')) return '↔️';
+  if(t.includes('no ball')) return '⚠️';
+  if(t.includes('bye')) return '🏃';
+  return '🏏';
+}
+function commentaryClass(text){
+  const t = (text||'').toLowerCase();
+  if(t.includes('out!')) return 'c-wicket';
+  if(t.includes('six')) return 'c-six';
+  if(t.includes('four')) return 'c-four';
+  return '';
+}
+let liveRenderState = {matchKey:null, lastLen:0};
+function triggerLiveFlash(ev){
+  const card = document.getElementById('liveCard');
+  const toast = document.getElementById('eventToast');
+  if(!card || !toast) return;
+  let cls = '', text = '';
+  if(ev === '6'){ cls='flash-six'; text='🚀 SIX!'; }
+  else if(ev === '4'){ cls='flash-four'; text='⚡ FOUR!'; }
+  else if(ev === 'W'){ cls='flash-wicket'; text='🎯 OUT!'; }
+  else return;
+  card.classList.remove('flash-four','flash-six','flash-wicket');
+  toast.classList.remove('show');
+  void card.offsetWidth;
+  card.classList.add(cls);
+  toast.textContent = text;
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(()=>{ card.classList.remove(cls); toast.classList.remove('show'); }, 1400);
+}
+function shareScore(){
+  if(!currentMatch){ return; }
+  const m = currentMatch;
+  const inn1 = m.innings1;
+  let text = `🏏 ${teamNameM(m, inn1.battingTeam) || 'Team A'} vs ${teamNameM(m, inn1.bowlingTeam) || 'Team B'}\n`;
+  text += `${document.getElementById('teamAName').textContent}: ${document.getElementById('teamAScore').textContent} (${document.getElementById('teamAOvers').textContent} ov)\n`;
+  if(m.inningsIndex === 2){
+    text += `${document.getElementById('teamBName').textContent}: ${document.getElementById('teamBScore').textContent}\n`;
+  }
+  text += `CRR: ${document.getElementById('crrVal').textContent}\n`;
+  text += `📍 ${document.getElementById('venueVal').textContent}\n`;
+  text += `Live updates by Shreesyam Cricket Academy 🏆`;
+  if(navigator.share){
+    navigator.share({title:'Live Cricket Score', text}).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn = document.getElementById('shareScoreBtn');
+      if(btn){ const old = btn.innerHTML; btn.innerHTML = '✅ Copied!'; setTimeout(()=>{ btn.innerHTML = old; }, 1800); }
+    }).catch(()=>alert(text));
+  } else {
+    alert(text);
+  }
 }
 
 function renderLiveSection(m){
@@ -1175,19 +1447,25 @@ function renderLiveSection(m){
   const inn1 = m.innings1, inn2 = m.innings2;
   const battingInn = m.inningsIndex === 1 ? inn1 : inn2;
   document.getElementById('liveInningsLabel').textContent = (m.inningsIndex === 1 ? '1st' : '2nd') + ' Innings' + (m.status==='ended' ? ' — Match Ended' : '');
-  document.getElementById('teamAName').textContent = teamNameM(m, inn1.battingTeam) || 'Team A';
-  document.getElementById('teamBName').textContent = teamNameM(m, inn1.bowlingTeam) || 'Team B';
+  const nameA = teamNameM(m, inn1.battingTeam) || 'Team A';
+  const nameB = teamNameM(m, inn1.bowlingTeam) || 'Team B';
+  document.getElementById('teamAName').textContent = nameA;
+  document.getElementById('teamBName').textContent = nameB;
+  document.getElementById('teamAAvatar').textContent = nameA.charAt(0).toUpperCase();
+  document.getElementById('teamBAvatar').textContent = nameB.charAt(0).toUpperCase();
   document.getElementById('teamAScore').textContent = inn1.runs + '/' + inn1.wkts;
   document.getElementById('teamAOvers').textContent = inn1.overs + '.' + inn1.balls;
   document.getElementById('venueVal').textContent = m.venue || '-';
   document.getElementById('tossLine').textContent = m.tossWinner ? `${teamNameM(m,m.tossWinner)} won the toss and chose to ${m.tossDecision === 'bat' ? 'bat' : 'bowl'} first.` : '';
 
+  const targetBarWrap = document.getElementById('targetBarWrap');
   if(m.inningsIndex === 1){
     document.getElementById('teamBScore').textContent = 'Yet to bat';
     document.getElementById('teamBStatus').textContent = '';
     document.getElementById('targetRow').style.display = 'none';
     document.getElementById('needRow').style.display = 'none';
     document.getElementById('rrrRow').style.display = 'none';
+    targetBarWrap.style.display = 'none';
   } else {
     document.getElementById('teamBScore').textContent = inn2.runs + '/' + inn2.wkts;
     document.getElementById('teamBStatus').textContent = 'Overs: ' + inn2.overs + '.' + inn2.balls;
@@ -1204,17 +1482,31 @@ function renderLiveSection(m){
       } else {
         document.getElementById('rrrRow').style.display = 'none';
       }
+      targetBarWrap.style.display = '';
+      const pct = Math.min(100, (inn2.runs / m.target) * 100);
+      const fill = document.getElementById('targetBarFill');
+      fill.style.width = pct + '%';
+      fill.style.background = pct >= 100 ? 'linear-gradient(90deg,#2e9e5b,#57c98a)' : 'linear-gradient(90deg,var(--gold),var(--ball-2))';
+      document.getElementById('targetBarLabel').textContent = pct >= 100 ? '🏆 Target achieved!' : `${inn2.runs} / ${m.target} runs chased`;
+    } else {
+      targetBarWrap.style.display = 'none';
     }
   }
   const oversFloat = battingInn.overs + battingInn.balls/6;
   document.getElementById('crrVal').textContent = oversFloat > 0 ? (battingInn.runs/oversFloat).toFixed(2) : '0.00';
 
+  if(document.getElementById('rrrRow').style.display !== 'none'){
+    const crrNum = parseFloat(document.getElementById('crrVal').textContent) || 0;
+    const rrrNum = parseFloat(document.getElementById('rrrVal').textContent) || 0;
+    document.getElementById('rrrVal').style.color = rrrNum > crrNum ? '#ff8a8a' : '#7be3a3';
+  }
+
   const oncrease = document.getElementById('onCrease');
   if(m.status === 'live' && battingInn.striker){
     oncrease.style.display = '';
-    document.getElementById('strikerLine').textContent = fmtBatsman(battingInn, battingInn.striker) + '*';
-    document.getElementById('nonStrikerLine').textContent = fmtBatsman(battingInn, battingInn.nonStriker);
-    document.getElementById('bowlerLine').textContent = fmtBowler(battingInn, battingInn.bowler) || '-';
+    document.getElementById('strikerLine').innerHTML = fmtBatsman(battingInn, battingInn.striker);
+    document.getElementById('nonStrikerLine').innerHTML = fmtBatsman(battingInn, battingInn.nonStriker);
+    document.getElementById('bowlerLine').innerHTML = fmtBowler(battingInn, battingInn.bowler) || '-';
     document.getElementById('partnershipLine').textContent = `${battingInn.partnership.runs} (${battingInn.partnership.balls})`;
   } else {
     oncrease.style.display = 'none';
@@ -1222,15 +1514,15 @@ function renderLiveSection(m){
 
   const ballsWrap = document.getElementById('liveBalls');
   const last12 = battingInn.ballLog.slice(-12);
-  ballsWrap.innerHTML = last12.map(ev=>{
+  ballsWrap.innerHTML = last12.map((ev,i)=>{
     const cls = ev==='4'?'four':ev==='6'?'six':ev==='W'?'wicket':'';
     const label = ev==='wd'?'Wd':ev==='nb'?'Nb':ev;
-    return `<div class="ball-chip ${cls}">${label}</div>`;
+    return `<div class="ball-chip ${cls}" style="animation-delay:${i*0.04}s">${label}</div>`;
   }).join('');
 
   const feed = document.getElementById('commentaryFeed');
-  feed.innerHTML = (m.commentary||[]).slice(-8).reverse().map(c=>
-    `<div class="c-item"><span class="c-over">${c.over}</span>${c.text}</div>`).join('');
+  feed.innerHTML = (m.commentary||[]).slice(-8).reverse().map((c,i)=>
+    `<div class="c-item ${commentaryClass(c.text)}" style="animation-delay:${i*0.03}s"><span class="c-icon">${commentaryIcon(c.text)}</span><span class="c-over">${c.over}</span><span class="c-text">${c.text}</span></div>`).join('');
 
   const momLine = document.getElementById('momLine');
   if(m.status === 'ended' && m.manOfMatch){
@@ -1239,11 +1531,48 @@ function renderLiveSection(m){
   } else {
     momLine.style.display = 'none';
   }
+
+  /* Win Predictor — simple live-updating heuristic based on required vs current run rate */
+  const wpWrap = document.getElementById('winPredictWrap');
+  if(m.status === 'live' && m.inningsIndex === 2 && m.target){
+    const ballsBowled = inn2.overs*6 + inn2.balls;
+    const ballsLeft = (m.oversLimit ? m.oversLimit*6 : ballsBowled + 24) - ballsBowled;
+    const need = Math.max(m.target - inn2.runs, 0);
+    const rrr = ballsLeft > 0 ? (need*6/ballsLeft) : 99;
+    const crr = ballsBowled > 0 ? (inn2.runs*6/ballsBowled) : 0;
+    const wktsLeft = Math.max(teamPlayersM(m, inn2.battingTeam).length - 1 - inn2.wkts, 0);
+    let chaseScore = 50 + (crr - rrr) * 6 + (wktsLeft - 5) * 3;
+    chaseScore = Math.max(4, Math.min(96, chaseScore));
+    if(need <= 0) chaseScore = 97;
+    const defendScore = 100 - chaseScore;
+    wpWrap.style.display = '';
+    document.getElementById('wpTeamALabel').textContent = teamNameM(m, inn1.battingTeam) + ' (Defending)';
+    document.getElementById('wpTeamBLabel').textContent = teamNameM(m, inn2.battingTeam) + ' (Chasing)';
+    document.getElementById('wpBarA').style.width = defendScore.toFixed(0) + '%';
+    document.getElementById('wpBarB').style.width = chaseScore.toFixed(0) + '%';
+    document.getElementById('wpPctA').textContent = defendScore.toFixed(0) + '%';
+    document.getElementById('wpPctB').textContent = chaseScore.toFixed(0) + '%';
+  } else {
+    wpWrap.style.display = 'none';
+  }
+
+  const matchKey = m.status + '|' + m.inningsIndex + '|' + (battingInn.battingTeam || '');
+  if(liveRenderState.matchKey !== matchKey){
+    liveRenderState.matchKey = matchKey;
+    liveRenderState.lastLen = (m.commentary || []).length;
+  } else {
+    const newLen = (m.commentary || []).length;
+    if(newLen > liveRenderState.lastLen){
+      triggerLiveFlash(battingInn.ballLog[battingInn.ballLog.length - 1]);
+    }
+    liveRenderState.lastLen = newLen;
+  }
 }
 
-function openScorecard(){
-  if(!currentMatch){ return; }
-  const m = currentMatch;
+function openScorecard(matchObj){
+  const m = matchObj || currentMatch;
+  if(!m){ return; }
+  window.__scorecardMatch = m;
   const box = document.getElementById('scorecardBody');
   function inningsHtml(inn, label){
     if(!inn || !inn.battingOrder.length) return '';
@@ -1277,6 +1606,288 @@ if(fbReady){
   renderLiveSection(null);
 }
 
+/* =====================================================================
+   LIVE MODULE TABS — Current / Upcoming / Recent
+===================================================================== */
+function showLiveTab(tabId, btn){
+  document.querySelectorAll('.live-tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelectorAll('.live-tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+/* ---------- UPCOMING MATCHES ---------- */
+let upcomingMatchesCache = [];
+function fmtUpcomingDate(dateStr, timeStr){
+  if(!dateStr) return {label:'-', dt:null};
+  const dt = new Date(dateStr + 'T' + (timeStr || '09:00'));
+  const label = dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) + (timeStr ? ' · ' + dt.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}) : '');
+  return {label, dt};
+}
+function renderUpcomingMatches(){
+  const box = document.getElementById('upcomingMatchesList');
+  if(!box) return;
+  const now = new Date();
+  const upcoming = upcomingMatchesCache.filter(u=>{
+    const {dt} = fmtUpcomingDate(u.date, u.time);
+    return !dt || dt >= new Date(now.getTime() - 3*60*60*1000);
+  });
+  document.getElementById('upcomingCount').textContent = upcoming.length;
+  if(!upcoming.length){
+    box.innerHTML = '<div class="live-card empty-tab-msg">📅 No upcoming matches scheduled yet. Check back soon — the admin will list the next fixture here.</div>';
+    return;
+  }
+  box.innerHTML = upcoming.map(u=>{
+    const {label, dt} = fmtUpcomingDate(u.date, u.time);
+    return `
+    <div class="upcoming-card reveal in" data-updt="${dt ? dt.getTime() : ''}" data-id="${u.id}">
+      <span class="upcoming-badge">📅 Upcoming Fixture</span>
+      <div class="upcoming-teams">${u.teamA || 'Team A'} <span style="color:var(--gold);">vs</span> ${u.teamB || 'Team B'}</div>
+      <div class="upcoming-meta-row">
+        <span>📍 <strong>${u.venue || 'TBA'}</strong></span>
+        <span>🗓️ <strong>${label}</strong></span>
+        ${u.notes ? `<span>🏆 <strong>${u.notes}</strong></span>` : ''}
+      </div>
+      <div class="countdown-wrap" id="cd-${u.id}">
+        <div class="countdown-cell"><div class="cd-num">--</div><div class="cd-lbl">Days</div></div>
+        <div class="countdown-cell"><div class="cd-num">--</div><div class="cd-lbl">Hrs</div></div>
+        <div class="countdown-cell"><div class="cd-num">--</div><div class="cd-lbl">Min</div></div>
+        <div class="countdown-cell"><div class="cd-num">--</div><div class="cd-lbl">Sec</div></div>
+      </div>
+      <div class="upcoming-actions">
+        <button onclick="addToCalendar('${u.id}')">📆 Add to Calendar</button>
+        <button onclick="shareUpcoming('${u.id}')">📤 Share</button>
+        <button id="notifyBtn-${u.id}" onclick="notifyMeUpcoming('${u.id}', this)">🔔 Notify Me</button>
+      </div>
+    </div>`;
+  }).join('');
+  tickCountdowns();
+}
+let countdownTimer = null;
+function tickCountdowns(){
+  if(countdownTimer) clearInterval(countdownTimer);
+  function update(){
+    document.querySelectorAll('.upcoming-card').forEach(card=>{
+      const ts = parseFloat(card.dataset.updt);
+      const wrap = card.querySelector('.countdown-wrap');
+      if(!wrap) return;
+      const cells = wrap.querySelectorAll('.cd-num');
+      if(!ts){ cells.forEach(c=>c.textContent='--'); return; }
+      let diff = ts - Date.now();
+      if(diff < 0) diff = 0;
+      const d = Math.floor(diff/86400000), h = Math.floor(diff%86400000/3600000), mi = Math.floor(diff%3600000/60000), s = Math.floor(diff%60000/1000);
+      cells[0].textContent = d; cells[1].textContent = h; cells[2].textContent = mi; cells[3].textContent = s;
+    });
+  }
+  update();
+  countdownTimer = setInterval(update, 1000);
+}
+function addToCalendar(id){
+  const u = upcomingMatchesCache.find(x=>x.id===id);
+  if(!u) return;
+  const {dt} = fmtUpcomingDate(u.date, u.time);
+  const start = dt || new Date();
+  const end = new Date(start.getTime() + 3*60*60*1000);
+  const fmt = d => d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${u.teamA} vs ${u.teamB} — Shreesyam Cricket Academy\nDTSTART:${fmt(start)}\nDTEND:${fmt(end)}\nLOCATION:${u.venue||''}\nDESCRIPTION:${u.notes||'Cricket match'}\nEND:VEVENT\nEND:VCALENDAR`;
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${u.teamA}-vs-${u.teamB}.ics`.replace(/\s+/g,'_');
+  link.click();
+}
+function shareUpcoming(id){
+  const u = upcomingMatchesCache.find(x=>x.id===id);
+  if(!u) return;
+  const {label} = fmtUpcomingDate(u.date, u.time);
+  const text = `🏏 Upcoming Match!\n${u.teamA} vs ${u.teamB}\n📍 ${u.venue||'TBA'}\n🗓️ ${label}\n${u.notes||''}\nFollow live scores at Shreesyam Cricket Academy 🏆`;
+  if(navigator.share){ navigator.share({title:'Upcoming Cricket Match', text}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>alert('Copied to clipboard!')); }
+  else alert(text);
+}
+function notifyMeUpcoming(id, btn){
+  const u = upcomingMatchesCache.find(x=>x.id===id);
+  if(!u) return;
+  if(!('Notification' in window)){ alert('Notifications are not supported on this device/browser.'); return; }
+  Notification.requestPermission().then(perm=>{
+    if(perm === 'granted'){
+      const key = 'sca_notify_'+id;
+      localStorage.setItem(key, '1');
+      btn.textContent = '✅ Reminder Set'; btn.classList.add('notified');
+      const {dt} = fmtUpcomingDate(u.date, u.time);
+      if(dt){
+        const msDelay = dt.getTime() - Date.now() - 30*60000; // 30 min before
+        if(msDelay > 0 && msDelay < 2147000000){
+          setTimeout(()=>{
+            try{ new Notification('🏏 Match starting soon!', {body:`${u.teamA} vs ${u.teamB} begins in 30 minutes at ${u.venue||'the ground'}.`}); }catch(e){}
+          }, msDelay);
+        }
+      }
+    } else {
+      alert('Notification permission denied. You can still bookmark this page and check back.');
+    }
+  });
+}
+
+/* ---------- RECENT MATCHES (archived from Firestore 'scorecards') ---------- */
+let recentMatchesCache = [];
+function renderRecentMatches(){
+  const box = document.getElementById('recentMatchesList');
+  if(!box) return;
+  const q = (document.getElementById('recentSearchInput')?.value || '').toLowerCase().trim();
+  let list = recentMatchesCache;
+  if(q){
+    list = list.filter(m => (m.teamA||'').toLowerCase().includes(q) || (m.teamB||'').toLowerCase().includes(q));
+  }
+  document.getElementById('recentCount').textContent = recentMatchesCache.length;
+  if(!list.length){
+    box.innerHTML = `<div class="live-card empty-tab-msg">📜 ${q ? 'No matches found for "'+q+'".' : 'No completed matches yet. Once a live match ends, it automatically appears here with the full scorecard.'}</div>`;
+    return;
+  }
+  box.innerHTML = list.map(m=>{
+    const inn1 = m.innings1, inn2 = m.innings2;
+    const t1 = teamNameM(m, inn1.battingTeam), t2 = teamNameM(m, inn2 ? inn2.battingTeam : otherTeam(inn1.battingTeam));
+    const dateLbl = m.matchDate || (m.savedAt && m.savedAt.toDate ? m.savedAt.toDate().toLocaleDateString('en-IN') : '');
+    return `
+    <div class="match-hist-card reveal in">
+      <div class="match-hist-top">
+        <div class="match-hist-teams">${m.teamA} <span style="color:var(--gold);">vs</span> ${m.teamB}</div>
+        <div class="match-hist-date">${dateLbl}${m.venue ? ' · 📍 '+m.venue : ''}</div>
+      </div>
+      <div class="match-hist-score">${t1} ${inn1.runs}/${inn1.wkts} (${inn1.overs}.${inn1.balls} ov)${inn2 && inn2.battingOrder && inn2.battingOrder.length ? ` &nbsp;·&nbsp; ${t2} ${inn2.runs}/${inn2.wkts} (${inn2.overs}.${inn2.balls} ov)` : ''}</div>
+      <div class="match-hist-result">🏆 ${m.resultText || 'Result pending'}</div>
+      <div class="match-hist-actions">
+        <button onclick='openScorecard(${JSON.stringify(m).replace(/'/g,"&apos;")})'>📊 Scorecard</button>
+        <button onclick='downloadScorecardPDF(${JSON.stringify(m).replace(/'/g,"&apos;")})'>⬇️ PDF</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+if(fbReady){
+  db.collection('upcomingMatches').orderBy('date','asc').onSnapshot(snap=>{
+    upcomingMatchesCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderUpcomingMatches();
+    renderAdminUpcomingList();
+  }, err=>console.warn('upcoming matches listener error', err));
+
+  db.collection('scorecards').orderBy('savedAt','desc').onSnapshot(snap=>{
+    recentMatchesCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderRecentMatches();
+  }, err=>console.warn('scorecards listener error', err));
+} else {
+  renderUpcomingMatches();
+  renderRecentMatches();
+}
+
+/* ---------- ADMIN: Upcoming Matches CRUD ---------- */
+async function addUpcomingMatch(){
+  if(!requireFirebase('Add Upcoming Match')) return;
+  const teamA = val('upTeamA'), teamB = val('upTeamB'), date = val('upDate'), time = val('upTime'), venue = val('upVenue'), notes = val('upNotes');
+  if(!teamA || !teamB || !date){ alert('Fill Team A, Team B and Match Date at least.'); return; }
+  try{
+    await db.collection('upcomingMatches').add({teamA, teamB, date, time, venue, notes, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    ['upTeamA','upTeamB','upDate','upTime','upVenue','upNotes'].forEach(id=>document.getElementById(id).value='');
+  }catch(err){
+    console.warn('addUpcomingMatch failed:', err);
+    alert('⚠️ Could not save the upcoming match (' + (err.message||'permission error') + ').\n\nIf you just added this feature, make sure your Firestore Security Rules allow logged-in admins to write to the "upcomingMatches" collection (same as your other collections like "results" or "news").');
+  }
+}
+function renderAdminUpcomingList(){
+  const box = document.getElementById('upcomingAdminList');
+  if(!box) return;
+  box.innerHTML = upcomingMatchesCache.map(u=>{
+    const {label} = fmtUpcomingDate(u.date, u.time);
+    return `<div class="data-row"><div class="drow-top"><span>${u.teamA} vs ${u.teamB}</span><span>${label}</span></div>
+    <div class="drow-meta">📍 ${u.venue||'-'} ${u.notes ? '· '+u.notes : ''}</div>
+    <button onclick="deleteDoc('upcomingMatches','${u.id}')">Delete</button></div>`;
+  }).join('') || '<p style="font-size:13px;color:#999;">No upcoming matches added yet.</p>';
+}
+
+/* ---------- PDF SCORECARD EXPORT (jsPDF) ---------- */
+function downloadScorecardPDF(m){
+  if(!m){ alert('No match data to export yet.'); return; }
+  if(!window.jspdf || !window.jspdf.jsPDF){ alert('PDF library failed to load. Please check your internet connection.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 18;
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.setTextColor(11,61,46);
+  doc.text('Shreesyam Cricket Academy', pageWidth/2, y, {align:'center'});
+  y += 7;
+  doc.setFontSize(11); doc.setTextColor(80,80,80); doc.setFont('helvetica','normal');
+  doc.text('Official Match Scorecard', pageWidth/2, y, {align:'center'});
+  y += 10;
+  doc.setDrawColor(212,166,42); doc.setLineWidth(0.8); doc.line(14, y, pageWidth-14, y);
+  y += 8;
+
+  doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(20,20,20);
+  doc.text(`${m.teamA || 'Team A'}  vs  ${m.teamB || 'Team B'}`, 14, y);
+  y += 7;
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(90,90,90);
+  doc.text(`Venue: ${m.venue || '-'}   |   Date: ${m.matchDate || '-'}`, 14, y);
+  y += 6;
+  if(m.tossWinner){
+    doc.text(`Toss: ${teamNameM(m, m.tossWinner)} won the toss, elected to ${m.tossDecision === 'bat' ? 'bat' : 'bowl'} first.`, 14, y);
+    y += 6;
+  }
+  if(m.resultText){
+    doc.setFont('helvetica','bold'); doc.setTextColor(192,57,43);
+    doc.text(`Result: ${m.resultText}`, 14, y);
+    y += 6;
+    doc.setFont('helvetica','normal'); doc.setTextColor(90,90,90);
+  }
+  if(m.manOfMatch){
+    doc.text(`Man of the Match: ${m.manOfMatch}`, 14, y);
+    y += 8;
+  } else { y += 4; }
+
+  function addInnings(inn, label){
+    if(!inn || !inn.battingOrder || !inn.battingOrder.length) return;
+    if(y > 250){ doc.addPage(); y = 18; }
+    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(11,61,46);
+    doc.text(`${label}: ${teamNameM(m, inn.battingTeam)} ${inn.runs}/${inn.wkts}  (${inn.overs}.${inn.balls} overs)`, 14, y);
+    y += 4;
+    const battingRows = inn.battingOrder.map(name=>{
+      const b = inn.batsmen[name];
+      const sr = b.balls>0 ? ((b.runs/b.balls)*100).toFixed(1) : '0.0';
+      return [name, b.out ? (b.how||'out') : 'not out', String(b.runs), String(b.balls), String(b.fours||0), String(b.sixes||0), sr];
+    });
+    doc.autoTable({
+      startY: y+2, head: [['Batsman','Dismissal','R','B','4s','6s','SR']], body: battingRows,
+      theme:'striped', headStyles:{fillColor:[11,61,46]}, styles:{fontSize:9}, margin:{left:14,right:14}
+    });
+    y = doc.lastAutoTable.finalY + 6;
+    const bowlingRows = Object.keys(inn.bowlers).map(name=>{
+      const bw = inn.bowlers[name];
+      const overs = Math.floor(bw.balls/6) + '.' + (bw.balls%6);
+      const econ = bw.balls>0 ? (bw.runs/(bw.balls/6)).toFixed(2) : '0.00';
+      return [name, overs, String(bw.runs), String(bw.wkts), econ];
+    });
+    if(bowlingRows.length){
+      doc.autoTable({
+        startY: y, head: [['Bowler','O','R','W','Econ']], body: bowlingRows,
+        theme:'striped', headStyles:{fillColor:[192,57,43]}, styles:{fontSize:9}, margin:{left:14,right:14}
+      });
+      y = doc.lastAutoTable.finalY + 4;
+    }
+    doc.setFontSize(9); doc.setTextColor(120,120,120);
+    doc.text(`Extras — Wd: ${inn.extras.wd||0}, Nb: ${inn.extras.nb||0}, B: ${inn.extras.b||0}, Lb: ${inn.extras.lb||0}`, 14, y);
+    y += 8;
+  }
+  addInnings(m.innings1, '1st Innings');
+  addInnings(m.innings2, '2nd Innings');
+
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(150,150,150);
+    doc.text('Generated by Shreesyam Cricket Academy — Live Match Center', pageWidth/2, 290, {align:'center'});
+  }
+  const fname = `${(m.teamA||'TeamA')}_vs_${(m.teamB||'TeamB')}_Scorecard.pdf`.replace(/\s+/g,'_');
+  doc.save(fname);
+}
+
 function renderAdminMatchControls(){
   const setupBox = document.getElementById('matchSetupBox');
   const flowBox = document.getElementById('matchFlowBox');
@@ -1308,7 +1919,7 @@ function renderAdminMatchControls(){
     ctrlBox.style.display = '';
     document.getElementById('ctrlTitle').textContent = `${currentMatch.teamA} vs ${currentMatch.teamB} (${currentMatch.inningsIndex===1?'1st':'2nd'} Innings)`;
     document.getElementById('ctrlPlayersLine').innerHTML =
-      `Striker: <strong>${fmtBatsman(inn, inn.striker)}*</strong> &nbsp;|&nbsp; Non-striker: <strong>${fmtBatsman(inn, inn.nonStriker)}</strong> &nbsp;|&nbsp; Bowler: <strong>${fmtBowler(inn, inn.bowler)}</strong>`;
+      `Striker: <strong>${fmtBatsman(inn, inn.striker)}</strong> &nbsp;|&nbsp; Non-striker: <strong>${fmtBatsman(inn, inn.nonStriker)}</strong> &nbsp;|&nbsp; Bowler: <strong>${fmtBowler(inn, inn.bowler)}</strong>`;
     const needBowler = !!currentMatch.needNewBowler;
     document.getElementById('newBowlerBox').style.display = needBowler ? '' : 'none';
     document.getElementById('ballButtonsWrap').style.display = needBowler ? 'none' : '';
@@ -1378,6 +1989,114 @@ async function confirmOpeners(){
 /* ---------- MATCH SETUP ---------- */
 function parsePlayers(str){ return str.split(',').map(s=>s.trim()).filter(Boolean); }
 
+/* ---------- Player chip UI (better team/player add experience) ---------- */
+let squadPlayers = {A:[], B:[]};
+
+function renderChips(letter){
+  const wrap = document.getElementById('chips'+letter);
+  wrap.innerHTML = squadPlayers[letter].map((name,i)=>
+    `<span class="player-chip">${name}<button type="button" onclick="removePlayerChip('${letter}',${i})">✕</button></span>`
+  ).join('');
+  document.getElementById('setupTeam'+letter+'Players').value = squadPlayers[letter].join(', ');
+  const n = squadPlayers[letter].length;
+  document.getElementById('count'+letter).textContent = n + ' added' + (n < 2 ? ' (min 2 needed)' : '');
+}
+function addPlayerChip(letter){
+  const input = document.getElementById('playerInput'+letter);
+  const name = input.value.trim();
+  if(!name) return;
+  if(squadPlayers[letter].some(p=>p.toLowerCase()===name.toLowerCase())){ input.value=''; input.focus(); return; }
+  squadPlayers[letter].push(name);
+  input.value = '';
+  renderChips(letter);
+  input.focus();
+}
+function removePlayerChip(letter, idx){
+  squadPlayers[letter].splice(idx,1);
+  renderChips(letter);
+}
+function resetPlayerChipsUI(){
+  squadPlayers = {A:[], B:[]};
+  ['A','B'].forEach(letter=>{
+    const pi = document.getElementById('playerInput'+letter);
+    if(pi) pi.value = '';
+    renderChips(letter);
+    const sel = document.getElementById('teamSel'+letter);
+    if(sel) sel.value = '__new__';
+    onTeamSelect(letter);
+  });
+}
+
+/* Saved Teams — every team + its full player list is stored permanently in
+   Firestore ('savedTeams' collection) the first time it's used, so the admin
+   never has to retype a team that has already played. Visible/editable only
+   from the admin panel; picking a team from the dropdown auto-loads its squad. */
+let savedTeamsCache = [];
+function findSavedTeamByName(name){
+  const n = (name||'').trim().toLowerCase();
+  return savedTeamsCache.find(t => (t.name||'').trim().toLowerCase() === n);
+}
+function populateTeamSelects(){
+  ['A','B'].forEach(letter=>{
+    const sel = document.getElementById('teamSel'+letter);
+    if(!sel) return;
+    const current = sel.value || '__new__';
+    sel.innerHTML = '<option value="__new__">+ Add New Team</option>' +
+      savedTeamsCache.map(t=>`<option value="${t.id}">${t.name} (${(t.players||[]).length} players)</option>`).join('');
+    sel.value = [...sel.options].some(o=>o.value===current) ? current : '__new__';
+  });
+}
+function onTeamSelect(letter){
+  const sel = document.getElementById('teamSel'+letter);
+  const nameInput = document.getElementById('setupTeam'+letter);
+  if(!sel) return;
+  if(sel.value === '__new__'){
+    nameInput.value = '';
+    nameInput.readOnly = false;
+    nameInput.placeholder = 'New team name';
+    squadPlayers[letter] = [];
+    renderChips(letter);
+  } else {
+    const team = savedTeamsCache.find(t=>t.id === sel.value);
+    if(!team) return;
+    nameInput.value = team.name;
+    nameInput.readOnly = true;
+    squadPlayers[letter] = [...(team.players||[])];
+    renderChips(letter);
+  }
+}
+async function upsertSavedTeam(teamName, players){
+  if(!teamName || !players.length || !fbReady) return;
+  try{
+    const existing = findSavedTeamByName(teamName);
+    const merged = Array.from(new Set([...(existing ? existing.players||[] : []), ...players]));
+    if(existing){
+      await db.collection('savedTeams').doc(existing.id).set({name: existing.name, players: merged, updatedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    } else {
+      await db.collection('savedTeams').add({name: teamName, players: merged, updatedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    }
+  }catch(err){
+    console.warn('upsertSavedTeam failed:', err);
+  }
+}
+function renderAdminTeamsList(){
+  const box = document.getElementById('savedTeamsAdminList');
+  if(!box) return;
+  box.innerHTML = savedTeamsCache.map(t=>`
+    <div class="data-row">
+      <div class="drow-top"><span>${t.name}</span><span>${(t.players||[]).length} players</span></div>
+      <div class="drow-meta">${(t.players||[]).join(', ')}</div>
+      <button onclick="deleteDoc('savedTeams','${t.id}')">Delete Team</button>
+    </div>`).join('') || '<p style="font-size:13px;color:#999;">No teams saved yet — they will appear here automatically after your first match setup.</p>';
+}
+if(fbReady){
+  db.collection('savedTeams').orderBy('name','asc').onSnapshot(snap=>{
+    savedTeamsCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    populateTeamSelects();
+    renderAdminTeamsList();
+  }, err=>console.warn('savedTeams listener error', err));
+}
+
 async function saveMatchSetup(){
   if(!requireFirebase('Save Match Details')) return;
   const teamA = val('setupTeamA'), teamB = val('setupTeamB');
@@ -1386,7 +2105,7 @@ async function saveMatchSetup(){
   const venue = val('setupVenue'), matchDate = val('setupDate'), rules = val('setupRules');
   const oversLimit = val('setupOversLimit');
   if(!teamA || !teamB){ alert('Please enter both team names.'); return; }
-  if(teamAPlayers.length < 2 || teamBPlayers.length < 2){ alert('Add at least 2 players per team (comma separated).'); return; }
+  if(teamAPlayers.length < 2 || teamBPlayers.length < 2){ alert('Add at least 2 players per team.'); return; }
   const m = blankMatch();
   m.teamA = teamA; m.teamB = teamB; m.teamAPlayers = teamAPlayers; m.teamBPlayers = teamBPlayers;
   m.venue = venue || '-'; m.matchDate = matchDate || ''; m.rules = rules || '';
@@ -1394,7 +2113,18 @@ async function saveMatchSetup(){
   m.status = 'toss';
   m.startedAt = firebase.firestore.FieldValue.serverTimestamp();
   undoStack = [];
+  await upsertSavedTeam(teamA, teamAPlayers);
+  await upsertSavedTeam(teamB, teamBPlayers);
   await db.collection('matches').doc('current').set(m);
+  resetPlayerChipsUI();
+  document.getElementById('setupTeamA').value = '';
+  document.getElementById('setupTeamA').readOnly = false;
+  document.getElementById('setupTeamB').value = '';
+  document.getElementById('setupTeamB').readOnly = false;
+  document.getElementById('setupVenue').value = '';
+  document.getElementById('setupDate').value = '';
+  document.getElementById('setupRules').value = '';
+  document.getElementById('setupOversLimit').value = '';
 }
 
 /* ---------- BALL-BY-BALL SCORING ---------- */
@@ -1474,25 +2204,45 @@ function openWicketBox(){
   if(!inn.striker) return;
   document.getElementById('wicketBatsmanSel').innerHTML =
     `<option value="striker">${inn.striker} (Striker)</option><option value="nonstriker">${inn.nonStriker} (Non-Striker)</option>`;
+  const fieldingPlayers = teamPlayersM(currentMatch, inn.bowlingTeam);
+  document.getElementById('wicketFielderSel').innerHTML = fieldingPlayers.map(p=>`<option>${p}</option>`).join('');
+  document.getElementById('wicketTypeSel').value = 'bowled';
   document.getElementById('wicketBox').style.display = '';
+  refreshFielderField();
+}
+function refreshFielderField(){
+  const type = val('wicketTypeSel');
+  const field = document.getElementById('wicketFielderField');
+  const label = document.getElementById('wicketFielderLabel');
+  if(type === 'caught'){
+    field.style.display = ''; label.textContent = 'Caught By (Fielder)';
+  } else if(type === 'stumped'){
+    field.style.display = ''; label.textContent = 'Stumped By (Wicketkeeper)';
+  } else if(type === 'runout'){
+    field.style.display = ''; label.textContent = 'Run Out By (Fielder)';
+  } else {
+    field.style.display = 'none';
+  }
 }
 function closeWicketBox(){ document.getElementById('wicketBox').style.display = 'none'; }
 
 async function confirmWicket(){
   const dismissal = val('wicketTypeSel');
   const who = val('wicketBatsmanSel');
+  const needsFielder = (dismissal === 'caught' || dismissal === 'stumped' || dismissal === 'runout');
+  const fielder = needsFielder ? val('wicketFielderSel') : '';
   const m = cloneMatch();
   const inn = m[m.inningsIndex === 1 ? 'innings1' : 'innings2'];
   const outName = who === 'striker' ? inn.striker : inn.nonStriker;
   inn.wkts += 1; inn.balls += 1;
   inn.batsmen[outName].out = true;
-  inn.batsmen[outName].how = dismissalLabel(dismissal, inn.bowler);
+  inn.batsmen[outName].how = dismissalLabel(dismissal, inn.bowler, fielder);
   if(who === 'striker') inn.batsmen[outName].balls += 1;
   if(dismissal !== 'runout') inn.bowlers[inn.bowler].wkts += 1;
   inn.bowlers[inn.bowler].balls += 1;
   inn.fow.push({score: inn.runs, wkt: inn.wkts, over: inn.overs + '.' + inn.balls, batsman: outName});
   inn.ballLog.push('W');
-  pushCommentary(m, inn, `OUT! ${outName} ${dismissalLabel(dismissal, inn.bowler)}.`);
+  pushCommentary(m, inn, `OUT! ${outName} ${dismissalLabel(dismissal, inn.bowler, fielder)}.`);
 
   const battingPlayers = teamPlayersM(m, inn.battingTeam);
   const allOut = inn.wkts >= battingPlayers.length - 1;
@@ -1560,7 +2310,19 @@ async function endMatch(){
   if(!confirm('End this live match and move to the result / scorecard entry?')) return;
   const m = cloneMatch();
   m.status = 'ended';
+  m.resultText = computeResultText(m);
   await commitMatch(m, false);
+  try{
+    // Auto-archive immediately so it shows up in "Recent Matches" right away,
+    // even before the admin picks a Man of the Match / clicks finalize.
+    const ref = await db.collection('scorecards').add({ ...m, savedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    const m2 = cloneMatch();
+    m2.scorecardDocId = ref.id;
+    await commitMatch(m2, false);
+  }catch(err){
+    console.warn('auto-archive to scorecards failed:', err);
+    alert('⚠️ Match ended, but could not save it to Recent Matches automatically (' + (err.message||'permission error') + '). Check Firestore rules allow writes to the "scorecards" collection, then use "Save Final Result & Scorecard" to retry.');
+  }
 }
 
 function computeResultText(m){
@@ -1591,26 +2353,37 @@ async function finalizeMatch(){
   const m = cloneMatch();
   m.manOfMatch = mom;
   m.resultText = computeResultText(m);
-  await db.collection('matches').doc('current').set(m);
+  try{
+    await db.collection('matches').doc('current').set(m);
 
-  const team1 = teamNameM(m, m.innings1.battingTeam), team2 = teamNameM(m, m.innings2.battingTeam);
-  await db.collection('results').add({
-    date: m.matchDate || new Date().toLocaleDateString('en-IN'),
-    match: `${m.teamA} vs ${m.teamB}`,
-    score: `${team1} ${m.innings1.runs}/${m.innings1.wkts} vs ${team2} ${m.innings2.runs}/${m.innings2.wkts}`,
-    result: m.resultText.startsWith(m.teamB) ? 'loss' : 'win',
-    resultText: m.resultText,
-    manOfMatch: mom,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  await db.collection('scorecards').add({ ...m, savedAt: firebase.firestore.FieldValue.serverTimestamp() });
-  alert('Match finalized! Full scorecard saved permanently and added to Results.');
+    const team1 = teamNameM(m, m.innings1.battingTeam), team2 = teamNameM(m, m.innings2.battingTeam);
+    await db.collection('results').add({
+      date: m.matchDate || new Date().toLocaleDateString('en-IN'),
+      match: `${m.teamA} vs ${m.teamB}`,
+      score: `${team1} ${m.innings1.runs}/${m.innings1.wkts} vs ${team2} ${m.innings2.runs}/${m.innings2.wkts}`,
+      result: m.resultText.startsWith(m.teamB) ? 'loss' : 'win',
+      resultText: m.resultText,
+      manOfMatch: mom,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if(m.scorecardDocId){
+      // Update the copy that was already auto-archived when the match ended.
+      await db.collection('scorecards').doc(m.scorecardDocId).set({ ...m, savedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    } else {
+      await db.collection('scorecards').add({ ...m, savedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    alert('Match finalized! Full scorecard saved permanently and added to Results.');
+  }catch(err){
+    console.warn('finalizeMatch failed:', err);
+    alert('⚠️ Could not save the final result (' + (err.message||'permission error') + '). Please check your internet connection and Firestore access, then try again.');
+  }
 }
 
 async function resetForNewMatch(){
   if(!confirm('Start a fresh match? The current match card will reset for the next game (already-finalized results stay saved).')) return;
   await db.collection('matches').doc('current').set(blankMatch());
   undoStack = [];
+  resetPlayerChipsUI();
 }
 
 /* ---------- COACHES ---------- */
@@ -1618,7 +2391,7 @@ const coaches = [
   {
     name: "Mohit Kumar",
     role: "Head Coach — Batting",
-    img: "20.jpeg",
+    img: "1.jpg",
     tags: ["Batting", "10+ Yrs Exp","Fitness Expert"]
   },
   {
@@ -1721,6 +2494,20 @@ document.querySelectorAll('.pay-btn').forEach(btn=>{
   };
 });
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+/* Click on the dark backdrop (outside the box) closes any open modal/admin panel —
+   fixes the "click ke baad wapis nahi hota" issue where only the tiny ✕ worked. */
+document.querySelectorAll('.modal-overlay, .admin-panel, .lightbox').forEach(overlay=>{
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) overlay.classList.remove('show');
+  });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal-overlay.show, .admin-panel.show, .lightbox.show').forEach(o=>o.classList.remove('show'));
+  }
+});
+resetPlayerChipsUI();
 function confirmPay(){
   document.getElementById('payModal').classList.remove('show');
   alert('✅ Payment Successful! A receipt has been sent to your email. (Demo)');
